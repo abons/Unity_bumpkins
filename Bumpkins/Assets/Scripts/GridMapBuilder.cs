@@ -37,6 +37,76 @@ public class GridMapBuilder : MonoBehaviour
         BuildBuildings();
         SpawnWolf();
         SpawnWasp();
+        SpawnBat();
+        SpawnOgre();
+        SpawnZombie();
+        SpawnGiant();
+        SpawnBloodWasp();
+    }
+
+    private void SpawnBloodWasp()
+    {
+        var go = new GameObject("BloodWasp");
+        go.transform.position = layout.TileToWorld(22, 8);
+        var sr = go.AddComponent<SpriteRenderer>();
+        var sp = Resources.Load<Sprite>("Sprites/Animals/bloodwsp");
+        if (sp != null) { sr.sprite = sp; go.transform.localScale = new Vector3(3f, 3f, 1f); }
+        sr.sortingOrder = 10;
+        go.AddComponent<BoxCollider2D>();
+        go.AddComponent<BloodWaspController>();
+        Debug.Log("[BloodWasp] Blood Wasp gespawnd op de kaart");
+    }
+
+    private void SpawnBat()
+    {
+        var go = new GameObject("Bat");
+        go.transform.position = layout.TileToWorld(20, 2);
+        var sr = go.AddComponent<SpriteRenderer>();
+        var sp = Resources.Load<Sprite>("Sprites/Animals/bat");
+        if (sp != null) { sr.sprite = sp; go.transform.localScale = new Vector3(3f, 3f, 1f); }
+        sr.sortingOrder = 10;
+        go.AddComponent<BoxCollider2D>();
+        go.AddComponent<BatController>();
+        Debug.Log("[Bat] Bat gespawnd op de kaart");
+    }
+
+    private void SpawnOgre()
+    {
+        var go = new GameObject("Ogre");
+        go.transform.position = layout.TileToWorld(20, 15);
+        var sr = go.AddComponent<SpriteRenderer>();
+        var sp = Resources.Load<Sprite>("Sprites/Animals/ogrestil");
+        if (sp != null) { sr.sprite = sp; go.transform.localScale = new Vector3(3f, 3f, 1f); }
+        sr.sortingOrder = 10;
+        go.AddComponent<BoxCollider2D>();
+        go.AddComponent<OgreController>();
+        Debug.Log("[Ogre] Ogre gespawnd op de kaart");
+    }
+
+    private void SpawnZombie()
+    {
+        var go = new GameObject("Zombie");
+        go.transform.position = layout.TileToWorld(1, 15);
+        var sr = go.AddComponent<SpriteRenderer>();
+        var sp = Resources.Load<Sprite>("Sprites/Animals/zombie");
+        if (sp != null) { sr.sprite = sp; go.transform.localScale = new Vector3(3f, 3f, 1f); }
+        sr.sortingOrder = 10;
+        go.AddComponent<BoxCollider2D>();
+        go.AddComponent<ZombieController>();
+        Debug.Log("[Zombie] Zombie gespawnd op de kaart");
+    }
+
+    private void SpawnGiant()
+    {
+        var go = new GameObject("Giant");
+        go.transform.position = layout.TileToWorld(10, 1);
+        var sr = go.AddComponent<SpriteRenderer>();
+        var sp = Resources.Load<Sprite>("Sprites/Animals/gianstil");
+        if (sp != null) { sr.sprite = sp; go.transform.localScale = new Vector3(3f, 3f, 1f); }
+        sr.sortingOrder = 10;
+        go.AddComponent<BoxCollider2D>();
+        go.AddComponent<GiantController>();
+        Debug.Log("[Giant] Giant gespawnd op de kaart");
     }
 
     private void SpawnWasp()

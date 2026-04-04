@@ -9,6 +9,7 @@ Zie [DESIGN.md](DESIGN.md) voor core loops, data model en entities.
 **Update 3:** Build mechanic uitgebreid — Mill + Dairy ontgrendelsysteem, constructie-pipeline voor Mill, BFS wegpathfinding rond obstakels.
 **Update 4:** Wegalignment gecorrigeerd — Toolshed/Mill deur-exit tiles aangepast, `DoorExit()` helper toegevoegd, Farm/Dairy krijgen nu ook ghost road preview en auto-weg bij plaatsing. Dairy footprint 3×3 expliciet.
 **Update 5:** Wolf enemy basisimplementatie klaar — `WolfController.cs` (Roaming/Hunting/Attacking/Dead), bumpkin death sequence met `d_male`/skeleton sprites, `IsDead` guard, selection clearing bij dood.
+**Update 6:** Wasp enemy toegevoegd — `WaspController.cs` (Roaming/Hunting/Attacking/Dead), jaagt alleen bumpkins, sneller dan wolf (chaseSpeed 4.5f), steek na 1.5s.
 
 ---
 
@@ -269,7 +270,8 @@ Spawning → Roaming → Hunting → Attacking → [Fleeing | Dead]
 
 ### Stap 9 — Verdediging uitbreiden
 - [ ] Guard bumpkin type met hogere aanvalskracht
-- [ ] Toren bouwen (via build mechanic) die automatisch wolven aanvalt
+- [ ] Toren bouwen (via build mechanic) die automatisch wolven/wespen aanvalt
+- [ ] `WolfSpawner.cs` / `WaspSpawner.cs` — periodiek spawnen vanaf kaartrand
 
 ## Einddoel (MVP checklist)
 - [x] Bumpkin beweegt
@@ -281,7 +283,8 @@ Spawning → Roaming → Hunting → Attacking → [Fleeing | Dead]
 - [x] UI toont resources  ✅ **MVP COMPLEET**
 - [x] Build mechanic: House / WheatField / ChickenCoop / Mill / Dairy bouwen voor gold ✅
 - [x] Wolf enemy: spawnt, roamt, jaagt, valt aan — bumpkin death sequence compleet ✅
-- [ ] Wolf spawner (periodiek vanaf kaartrand)
+- [x] Wasp enemy: `WaspController.cs` — zelfde state machine als wolf, alleen bumpkins als doelwit ✅
+- [ ] Wolf/wasp spawner (periodiek vanaf kaartrand)
 - [ ] *(stretch)* Bread/milk/egg kopen voor gold
 - [ ] *(stretch)* Happiness meter
 - [ ] *(stretch)* Guard bumpkin / verdedigingstoren

@@ -2,6 +2,28 @@
 
 ---
 
+## Sessie 9 — 4 april 2026 (wasp enemy)
+
+### WaspController.cs (nieuw)
+- State machine: Roaming → Hunting → Attacking → Dead — identiek patroon als wolf
+- **Roaming**: beweegt naar willekeurige posities; `wasp` sprite tijdens vliegen
+- **Hunting**: detecteert dichtstbijzijnde **levende** `BumpkinController` binnen `huntRadius = 4f`; koeien niet aangevallen
+- **Attacking**: toont `waspat`, wacht 1.5s, roept `TakeDamage()` op doelwit; daarna Dead
+- **Dead**: `waspdead` 2s zichtbaar, daarna `Destroy(gameObject)`
+- Flip: `flipX = dir.x > 0f` — zelfde conventie als wolf
+- Sort order: `Mathf.RoundToInt(-y / 0.256f) + 50` — altijd boven terrain
+- `IsDead` check in `FindTarget()` — dode bumpkins worden overgeslagen
+
+### Wasp spawning
+- `GridMapBuilder.SpawnWasp()` toegevoegd, gecalled vanuit `Start()` na `SpawnWolf()`
+- Spawnt op tile (3, 2); schaal `3f`, BoxCollider2D
+
+### Wasp sprites naar Resources
+- Verplaatst van `Sprites/Animals/` naar `Resources/Sprites/Animals/`: wasp, waspat, waspdead
+- Originelen verwijderd
+
+---
+
 ## Sessie 8 — 4 april 2026 (wolf enemy + bumpkin death sequence)
 
 ### WolfController.cs (nieuw)
