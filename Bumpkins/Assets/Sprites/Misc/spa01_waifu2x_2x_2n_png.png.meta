@@ -1,0 +1,507 @@
+fileFormatVersion: 2
+guid: 0ce1f7f2f1e52674b8f4cda8b88b162c
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 7744238931373925025
+    second: spa01_waifu2x_2x_2n_png_0
+  - first:
+      213: -2113462728157171673
+    second: spa01_waifu2x_2x_2n_png_1
+  - first:
+      213: 1345006874078907508
+    second: spa01_waifu2x_2x_2n_png_2
+  - first:
+      213: 3214491026575062703
+    second: spa01_waifu2x_2x_2n_png_3
+  - first:
+      213: -6359580351286345968
+    second: spa01_waifu2x_2x_2n_png_4
+  - first:
+      213: 8718877655099827571
+    second: spa01_waifu2x_2x_2n_png_5
+  - first:
+      213: 7380451309262100096
+    second: spa01_waifu2x_2x_2n_png_6
+  - first:
+      213: -4250876586433835193
+    second: spa01_waifu2x_2x_2n_png_7
+  - first:
+      213: 8744181003051459949
+    second: spa01_waifu2x_2x_2n_png_8
+  - first:
+      213: -1437054334151052762
+    second: spa01_waifu2x_2x_2n_png_9
+  - first:
+      213: -7121984814636915174
+    second: spa01_waifu2x_2x_2n_png_10
+  - first:
+      213: -2945975580010663565
+    second: spa01_waifu2x_2x_2n_png_11
+  - first:
+      213: -4862736377636287612
+    second: spa01_waifu2x_2x_2n_png_12
+  - first:
+      213: -7431321270998641653
+    second: spa01_waifu2x_2x_2n_png_13
+  - first:
+      213: 1375974233782803597
+    second: spa01_waifu2x_2x_2n_png_14
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: spa01_waifu2x_2x_2n_png_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 103
+        width: 87
+        height: 100
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1a22b400740197b60800000000000000
+      internalID: 7744238931373925025
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spa01_waifu2x_2x_2n_png_1
+      rect:
+        serializedVersion: 2
+        x: 84
+        y: 118
+        width: 104
+        height: 63
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 720f92aa8d87ba2e0800000000000000
+      internalID: -2113462728157171673
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spa01_waifu2x_2x_2n_png_2
+      rect:
+        serializedVersion: 2
+        x: 211
+        y: 103
+        width: 101
+        height: 102
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 47c8ee530ac6aa210800000000000000
+      internalID: 1345006874078907508
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spa01_waifu2x_2x_2n_png_3
+      rect:
+        serializedVersion: 2
+        x: 301
+        y: 127
+        width: 52
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fa6ffacbe8a2c9c20800000000000000
+      internalID: 3214491026575062703
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spa01_waifu2x_2x_2n_png_4
+      rect:
+        serializedVersion: 2
+        x: 351
+        y: 80
+        width: 122
+        height: 103
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 01ff5017d5b3eb7a0800000000000000
+      internalID: -6359580351286345968
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spa01_waifu2x_2x_2n_png_5
+      rect:
+        serializedVersion: 2
+        x: 467
+        y: 125
+        width: 36
+        height: 80
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 375e050680daff870800000000000000
+      internalID: 8718877655099827571
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spa01_waifu2x_2x_2n_png_6
+      rect:
+        serializedVersion: 2
+        x: 503
+        y: 126
+        width: 76
+        height: 61
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 08652aacc51ac6660800000000000000
+      internalID: 7380451309262100096
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spa01_waifu2x_2x_2n_png_7
+      rect:
+        serializedVersion: 2
+        x: 579
+        y: 118
+        width: 96
+        height: 87
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 74f0699444ad105c0800000000000000
+      internalID: -4250876586433835193
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spa01_waifu2x_2x_2n_png_8
+      rect:
+        serializedVersion: 2
+        x: 672
+        y: 127
+        width: 56
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d65e99a2b42995970800000000000000
+      internalID: 8744181003051459949
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spa01_waifu2x_2x_2n_png_9
+      rect:
+        serializedVersion: 2
+        x: 82
+        y: 9
+        width: 171
+        height: 98
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 622bdf962be8e0ce0800000000000000
+      internalID: -1437054334151052762
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spa01_waifu2x_2x_2n_png_10
+      rect:
+        serializedVersion: 2
+        x: 275
+        y: 9
+        width: 186
+        height: 97
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a1627d38b80a92d90800000000000000
+      internalID: -7121984814636915174
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spa01_waifu2x_2x_2n_png_11
+      rect:
+        serializedVersion: 2
+        x: 461
+        y: 33
+        width: 52
+        height: 49
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3713d7481dacd17d0800000000000000
+      internalID: -2945975580010663565
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spa01_waifu2x_2x_2n_png_12
+      rect:
+        serializedVersion: 2
+        x: 509
+        y: 33
+        width: 32
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 48b8e964707148cb0800000000000000
+      internalID: -4862736377636287612
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spa01_waifu2x_2x_2n_png_13
+      rect:
+        serializedVersion: 2
+        x: 510
+        y: 81
+        width: 31
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b0452564da4aed890800000000000000
+      internalID: -7431321270998641653
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spa01_waifu2x_2x_2n_png_14
+      rect:
+        serializedVersion: 2
+        x: 541
+        y: 30
+        width: 109
+        height: 70
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d8cd6b08641781310800000000000000
+      internalID: 1375974233782803597
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      spa01_waifu2x_2x_2n_png_0: 7744238931373925025
+      spa01_waifu2x_2x_2n_png_1: -2113462728157171673
+      spa01_waifu2x_2x_2n_png_10: -7121984814636915174
+      spa01_waifu2x_2x_2n_png_11: -2945975580010663565
+      spa01_waifu2x_2x_2n_png_12: -4862736377636287612
+      spa01_waifu2x_2x_2n_png_13: -7431321270998641653
+      spa01_waifu2x_2x_2n_png_14: 1375974233782803597
+      spa01_waifu2x_2x_2n_png_2: 1345006874078907508
+      spa01_waifu2x_2x_2n_png_3: 3214491026575062703
+      spa01_waifu2x_2x_2n_png_4: -6359580351286345968
+      spa01_waifu2x_2x_2n_png_5: 8718877655099827571
+      spa01_waifu2x_2x_2n_png_6: 7380451309262100096
+      spa01_waifu2x_2x_2n_png_7: -4250876586433835193
+      spa01_waifu2x_2x_2n_png_8: 8744181003051459949
+      spa01_waifu2x_2x_2n_png_9: -1437054334151052762
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

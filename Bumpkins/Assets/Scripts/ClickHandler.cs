@@ -1,0 +1,72 @@
+using UnityEngine;
+using UnityEngine.InputSystem;
+
+/// <summary>
+/// Centrale click handler voor alles in de scene.
+/// Vervangt OnMouseDown op BumpkinClick, ProductionNode en DropOffNode.
+/// Attach to een GameObject "ClickHandler" in de scene.
+/// </summary>
+public class ClickHandler : MonoBehaviour
+{
+    private Camera _cam;
+
+    void Start() => _cam = Camera.main;
+
+    void Update()
+    {
+        var mouse = Mouse.current;
+        if (mouse == null) return;
+
+        // Rechtermuis → deselect
+        if (mouse.rightButton.wasPressedThisFrame)
+        {
+            SelectionManager.Instance?.Deselect();
+            return;
+        }
+
+        if (!mouse.leftButton.wasPressedThisFrame) return;
+
+        // Niet doorklikken als de muis over een GUI-element staat
+        if (UIManager.IsPointerOverGUI) return;
+
+        Vector2 worldPos = _cam.ScreenToWorldPoint(mouse.position.ReadValue());
+
+        // Alle colliders op deze positie
+        var hit = Physics2D.Raycast(worldPos, Vector2.zero);
+        if (hit.collider == null)
+        {
+            // Klik op lege ruimte → stuur geselecteerde bumpkin erheen
+            SelectionManager.Instance?.SelectedBumpkin?.MoveTo(worldPos);
+            return;
+        }
+
+        var go = hit.collider.gameObject;
+
+        // Bumpkin aangeklikt → selecteer
+        var bumpkin = go.GetComponent<BumpkinController>();
+        if (bumpkin != null)
+        {
+            SelectionManager.Instance?.Select(bumpkin);
+            return;
+        }
+
+        // ProductionNode aangeklikt → stuur geselecteerde bumpkin erheen
+        var node = go.GetComponent<ProductionNode>();
+        if (node != null)
+        {
+            SelectionManager.Instance?.SelectedBumpkin?.AssignToNode(node);
+            return;
+        }
+
+        // DropOffNode aangeklikt → stuur geselecteerde bumpkin erheen
+        var dropOff = go.GetComponent<DropOffNode>();
+        if (dropOff != null)
+        {
+            SelectionManager.Instance?.SelectedBumpkin?.AssignToDropOff(dropOff);
+            return;
+        }
+
+        // Iets anders aangeklikt (terrain tile etc.) → beweeg erheen
+        SelectionManager.Instance?.SelectedBumpkin?.MoveTo(worldPos);
+    }
+}

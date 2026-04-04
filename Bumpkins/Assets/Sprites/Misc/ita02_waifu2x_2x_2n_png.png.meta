@@ -1,0 +1,481 @@
+fileFormatVersion: 2
+guid: 3161fd7694a1efd48bd2f8b8a4c69d5f
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 5888475526566071766
+    second: ita02_waifu2x_2x_2n_png_0
+  - first:
+      213: -8962699729995534697
+    second: ita02_waifu2x_2x_2n_png_1
+  - first:
+      213: -33170302426410446
+    second: ita02_waifu2x_2x_2n_png_2
+  - first:
+      213: 3289887352151185702
+    second: ita02_waifu2x_2x_2n_png_3
+  - first:
+      213: 1363046725865432976
+    second: ita02_waifu2x_2x_2n_png_4
+  - first:
+      213: 5046267399587729025
+    second: ita02_waifu2x_2x_2n_png_5
+  - first:
+      213: 5389505962891799887
+    second: ita02_waifu2x_2x_2n_png_6
+  - first:
+      213: 4905624372478957847
+    second: ita02_waifu2x_2x_2n_png_7
+  - first:
+      213: 868656439976676224
+    second: ita02_waifu2x_2x_2n_png_8
+  - first:
+      213: 2069503689627886540
+    second: ita02_waifu2x_2x_2n_png_9
+  - first:
+      213: 6208909664814088588
+    second: ita02_waifu2x_2x_2n_png_10
+  - first:
+      213: -4087134581168930916
+    second: ita02_waifu2x_2x_2n_png_11
+  - first:
+      213: 6583042450083283594
+    second: ita02_waifu2x_2x_2n_png_12
+  - first:
+      213: 2211834805581226454
+    second: ita02_waifu2x_2x_2n_png_13
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: ita02_waifu2x_2x_2n_png_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 97
+        width: 185
+        height: 101
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6dd4d8dfa4118b150800000000000000
+      internalID: 5888475526566071766
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ita02_waifu2x_2x_2n_png_1
+      rect:
+        serializedVersion: 2
+        x: 157
+        y: 169
+        width: 24
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 79e602df4181e9380800000000000000
+      internalID: -8962699729995534697
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ita02_waifu2x_2x_2n_png_2
+      rect:
+        serializedVersion: 2
+        x: 185
+        y: 121
+        width: 102
+        height: 52
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 23218c229c72a8ff0800000000000000
+      internalID: -33170302426410446
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ita02_waifu2x_2x_2n_png_3
+      rect:
+        serializedVersion: 2
+        x: 283
+        y: 121
+        width: 32
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6299500cd1708ad20800000000000000
+      internalID: 3289887352151185702
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ita02_waifu2x_2x_2n_png_4
+      rect:
+        serializedVersion: 2
+        x: 284
+        y: 169
+        width: 31
+        height: 29
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 097e77386c38ae210800000000000000
+      internalID: 1363046725865432976
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ita02_waifu2x_2x_2n_png_5
+      rect:
+        serializedVersion: 2
+        x: 315
+        y: 118
+        width: 100
+        height: 56
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 18e8f02b671f70640800000000000000
+      internalID: 5046267399587729025
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ita02_waifu2x_2x_2n_png_6
+      rect:
+        serializedVersion: 2
+        x: 417
+        y: 121
+        width: 42
+        height: 54
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f4de3015e1f5bca40800000000000000
+      internalID: 5389505962891799887
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ita02_waifu2x_2x_2n_png_7
+      rect:
+        serializedVersion: 2
+        x: 57
+        y: 3
+        width: 176
+        height: 97
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7195b1b2067441440800000000000000
+      internalID: 4905624372478957847
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ita02_waifu2x_2x_2n_png_8
+      rect:
+        serializedVersion: 2
+        x: 229
+        y: 25
+        width: 33
+        height: 77
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 08b4aa80e661e0c00800000000000000
+      internalID: 868656439976676224
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ita02_waifu2x_2x_2n_png_9
+      rect:
+        serializedVersion: 2
+        x: 261
+        y: 25
+        width: 31
+        height: 74
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cc361a914aa58bc10800000000000000
+      internalID: 2069503689627886540
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ita02_waifu2x_2x_2n_png_10
+      rect:
+        serializedVersion: 2
+        x: 287
+        y: 27
+        width: 32
+        height: 48
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c81cbb5a17a7a2650800000000000000
+      internalID: 6208909664814088588
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ita02_waifu2x_2x_2n_png_11
+      rect:
+        serializedVersion: 2
+        x: 292
+        y: 75
+        width: 27
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c9ff534c0c49747c0800000000000000
+      internalID: -4087134581168930916
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ita02_waifu2x_2x_2n_png_12
+      rect:
+        serializedVersion: 2
+        x: 320
+        y: 26
+        width: 37
+        height: 56
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a82088ada3aab5b50800000000000000
+      internalID: 6583042450083283594
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ita02_waifu2x_2x_2n_png_13
+      rect:
+        serializedVersion: 2
+        x: 357
+        y: 18
+        width: 48
+        height: 63
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6d1a380790402be10800000000000000
+      internalID: 2211834805581226454
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      ita02_waifu2x_2x_2n_png_0: 5888475526566071766
+      ita02_waifu2x_2x_2n_png_1: -8962699729995534697
+      ita02_waifu2x_2x_2n_png_10: 6208909664814088588
+      ita02_waifu2x_2x_2n_png_11: -4087134581168930916
+      ita02_waifu2x_2x_2n_png_12: 6583042450083283594
+      ita02_waifu2x_2x_2n_png_13: 2211834805581226454
+      ita02_waifu2x_2x_2n_png_2: -33170302426410446
+      ita02_waifu2x_2x_2n_png_3: 3289887352151185702
+      ita02_waifu2x_2x_2n_png_4: 1363046725865432976
+      ita02_waifu2x_2x_2n_png_5: 5046267399587729025
+      ita02_waifu2x_2x_2n_png_6: 5389505962891799887
+      ita02_waifu2x_2x_2n_png_7: 4905624372478957847
+      ita02_waifu2x_2x_2n_png_8: 868656439976676224
+      ita02_waifu2x_2x_2n_png_9: 2069503689627886540
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

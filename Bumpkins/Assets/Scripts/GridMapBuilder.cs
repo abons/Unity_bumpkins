@@ -1,0 +1,369 @@
+using UnityEngine;
+
+/// <summary>
+/// Reads a MapLayoutData asset and spawns tile + building GameObjects in the scene.
+/// Attach to an empty "Map" GameObject. Wire up prefabs in the inspector.
+/// </summary>
+public class GridMapBuilder : MonoBehaviour
+{
+    [Header("Layout")]
+    public MapLayoutData layout;
+
+    [Header("Tile Prefabs (SpriteRenderer, 1×1 unit)")]
+    public GameObject grassPrefab;
+    public GameObject roadPrefab;
+    public GameObject farmPlotPrefab;
+    public GameObject rockPrefab;
+    public GameObject woodPrefab;
+    public GameObject waterPrefab;
+
+    [Header("Building Prefabs")]
+    public GameObject townHallPrefab;
+    public GameObject millPrefab;
+    public GameObject farmPrefab;
+    public GameObject cowPenPrefab;
+    public GameObject campfirePrefab;
+    public GameObject rockpilePrefab;
+    public GameObject woodpilePrefab;
+    public GameObject bakeryPrefab;
+    public GameObject dairyPrefab;
+    public GameObject chickenCoopPrefab;
+    public GameObject housePrefab;
+
+    void Start()
+    {
+        if (layout == null) { Debug.LogError("[GridMapBuilder] No layout assigned!"); return; }
+        BuildTerrain();
+        BuildBuildings();
+    }
+
+    // ---- Terrain ----
+    private void BuildTerrain()
+    {
+        var parent = new GameObject("Terrain").transform;
+        parent.SetParent(transform);
+
+        for (int row = 0; row < layout.rows; row++)
+        for (int col = 0; col < layout.cols; col++)
+        {
+            var tile    = layout.GetTile(col, row);
+            var center  = layout.TileToWorld(col, row);
+            var tileVec = new Vector2(layout.isoHalfW * 2f, layout.isoHalfH * 2f);
+            int sOrder  = layout.SortOrder(col, row);
+
+            // Altijd eerst gras spawnen als achtergrond — fill zodat er geen gaps zijn
+            var grassGo = MakeSpriteFill("Terrain/Grass", center, tileVec, parent, sOrder)
+                       ?? MakePlaceholder(TileColor(TileType.Grass), center, tileVec, parent, sOrder);
+            grassGo.name = $"Grass_{col}_{row}";
+
+            // Road: road sprite boven het gras, met juiste rotatie/flip
+            if (tile == TileType.Road)
+            {
+                bool hasRowNeighbor = layout.GetTile(col - 1, row) == TileType.Road
+                                   || layout.GetTile(col + 1, row) == TileType.Road;
+                bool hasColNeighbor = layout.GetTile(col, row - 1) == TileType.Road
+                                   || layout.GetTile(col, row + 1) == TileType.Road;
+
+                // roads.png loopt standaard langs de col-as (N-S in iso)
+                // langs de row-as (E-W) → flip Y
+                bool flipY = hasRowNeighbor && !hasColNeighbor;
+
+                var roadGo = MakeSprite("Terrain/roads", center, tileVec, parent, sOrder + 1);
+                if (roadGo != null)
+                {
+                    roadGo.name = $"Road_{col}_{row}";
+                    if (flipY && roadGo.TryGetComponent<SpriteRenderer>(out var rsr))
+                        rsr.flipY = true;
+                }
+                else
+                {
+                    var ph = MakePlaceholder(TileColor(TileType.Road), center, tileVec, parent, sOrder + 1);
+                    ph.name = $"Road_{col}_{row}";
+                }
+            }
+            else if (tile != TileType.Grass)
+            {
+                // Andere niet-gras tiles (Rock, Water etc.) boven het gras
+                var prefab = TilePrefab(tile);
+                GameObject go;
+                if (prefab != null)
+                {
+                    go = Instantiate(prefab, center, Quaternion.identity, parent);
+                    if (go.TryGetComponent<SpriteRenderer>(out var psr)) psr.sortingOrder = sOrder + 1;
+                }
+                else
+                {
+                    var resName = TileResourceName(tile);
+                    go = (resName != null ? MakeSprite(resName, center, tileVec, parent, sOrder + 1) : null)
+                      ?? MakePlaceholder(TileColor(tile), center, tileVec, parent, sOrder + 1);
+                }
+                go.name = $"Tile_{col}_{row}_{tile}";
+            }
+        }
+    }
+
+    // ---- Buildings ----
+    private void BuildBuildings()
+    {
+        if (layout.buildings == null) return;
+        var parent = new GameObject("Buildings").transform;
+        parent.SetParent(transform);
+
+        foreach (var b in layout.buildings)
+        {
+            var center = layout.BuildingToWorld(b.position.x, b.position.y, b.size.x, b.size.y);
+            // Iso footprint in screen space
+            float isoW = (b.size.x + b.size.y) * layout.isoHalfW;
+            float isoH = (b.size.x + b.size.y) * layout.isoHalfH;
+            var   size = new Vector2(isoW, isoH);
+            int   bSort = layout.BuildingSortOrder(b.position.x, b.position.y, b.size.x, b.size.y);
+
+            // Root: scale 1 → collider size = world size
+            var root = new GameObject($"{b.type}_{b.position.x}_{b.position.y}");
+            root.transform.SetParent(parent);
+            root.transform.position = center;
+
+            var col = root.AddComponent<BoxCollider2D>();
+            col.size = size * 0.9f;
+
+            // Visual child
+            var visual = new GameObject("Visual");
+            visual.transform.SetParent(root.transform);
+            visual.transform.localPosition = Vector3.zero;
+
+            var prefab = BuildingPrefab(b.type);
+            if (prefab != null)
+            {
+                var go = Instantiate(prefab, visual.transform);
+                go.transform.localPosition = Vector3.zero;
+                go.transform.localScale    = new Vector3(size.x, size.y, 1f);
+            }
+            else
+            {
+                var sr = visual.AddComponent<SpriteRenderer>();
+                sr.sortingOrder = bSort;
+                var spritePath = b.type == BuildingType.CowPen
+                    ? "Sprites/Units/cow_se"
+                    : b.type == BuildingType.Bakery
+                    ? "Sprites/Buildings/Mill"
+                    : b.type == BuildingType.Woodpile
+                    ? "Sprites/Buildings/Logpile"
+                    : $"Sprites/Buildings/{b.type}";
+                var sp = Resources.Load<Sprite>(spritePath);
+                if (sp != null)
+                {
+                    sr.sprite = sp;
+                    float scale = Mathf.Min(size.x / sp.bounds.size.x, size.y / sp.bounds.size.y);
+                    scale = Mathf.Min(scale, 1.0f);
+                    visual.transform.localScale = new Vector3(scale, scale, 1f);
+                }
+                else
+                {
+                    sr.sprite = GetSquareSprite();
+                    sr.color  = BuildingColor(b.type);
+                    visual.transform.localScale = new Vector3(size.x * 0.95f, size.y * 0.95f, 1f);
+                }
+            }
+
+            // Extra overlay voor ChickenCoop: spawn een kip bovenop
+            if (b.type == BuildingType.ChickenCoop)
+            {
+                var chickenGo = new GameObject("Chicken");
+                chickenGo.transform.SetParent(root.transform);
+                chickenGo.transform.localPosition = new Vector3(0f, 0f, 0f);
+                var csr = chickenGo.AddComponent<SpriteRenderer>();
+                var csp = Resources.Load<Sprite>("Sprites/Units/Chicken");
+                if (csp != null)
+                {
+                    csr.sprite = csp;
+                    float cScale = size.x * 0.075f / csp.bounds.size.x;
+                    chickenGo.transform.localScale = new Vector3(cScale, cScale, 1f);
+                }
+                csr.sortingOrder = bSort + 1;
+                chickenGo.AddComponent<ChickenAnimator>();
+            }
+
+            // Vuuranimatie op kampvuur
+            if (b.type == BuildingType.Campfire)
+                visual.AddComponent<CampfireAnimator>();
+
+            // Gebouwen die bumpkins als idle-doel mogen bezoeken
+            if (b.type == BuildingType.House || b.type == BuildingType.Toolshed)
+            {
+                var tag = root.AddComponent<BuildingTag>();
+                tag.isHouse = (b.type == BuildingType.House);
+            }
+
+            // Molen wieken + deur animatie + drop-off node
+            if (b.type == BuildingType.Mill)
+            {
+                visual.AddComponent<MillAnimator>();
+                var dropOff = root.AddComponent<DropOffNode>();
+                dropOff.dropOffType = DropOffNode.DropOffType.Bakery;
+            }
+
+            // ProductionNode op WheatField en CowPen
+            if (b.type == BuildingType.Farm)
+            {
+                var dropOff = root.AddComponent<DropOffNode>();
+                dropOff.dropOffType = DropOffNode.DropOffType.Dairy;
+            }
+            if (b.type == BuildingType.WheatField)
+            {
+                var node = root.AddComponent<ProductionNode>();
+                node.nodeType = ProductionNode.NodeType.WheatField;
+                node.visualSpriteRenderer = visual.GetComponent<SpriteRenderer>();
+                // Voorkant van het iso-gebouw = offset naar onderen (dichtstbij camera)
+                // Voor een wxh footprint: y-offset = (w+h)/2 * isoHalfH
+                node.workOffset = new Vector2(0f, -(b.size.x + b.size.y) * 0.5f * layout.isoHalfH);
+            }
+            if (b.type == BuildingType.CowPen)
+            {
+                var node = root.AddComponent<ProductionNode>();
+                node.nodeType = ProductionNode.NodeType.Cow;
+                node.workOffset = new Vector2(0f, -(b.size.x + b.size.y) * 0.5f * layout.isoHalfH);
+            }
+        }
+    }
+
+    // ---- Placeholder factory ----
+    private GameObject MakePlaceholder(Color color, Vector3 pos, Vector2 size, Transform parent, int sortOrder = 0)
+    {
+        var go = new GameObject();
+        go.transform.SetParent(parent);
+        go.transform.position = pos;
+        go.transform.localScale = new Vector3(size.x * 0.95f, size.y * 0.95f, 1f);
+
+        var sr = go.AddComponent<SpriteRenderer>();
+        sr.sprite = GetSquareSprite();
+        sr.color  = color;
+        sr.sortingOrder = sortOrder;
+        return go;
+    }
+
+    /// Sprite geschaald met fill + 1% overscale om gaps te voorkomen (voor terrein tiles).
+    private GameObject MakeSpriteFill(string resourceName, Vector3 pos, Vector2 size, Transform parent, int sortOrder = 1)
+    {
+        var sp = Resources.Load<Sprite>($"Sprites/{resourceName}");
+        if (sp == null) return null;
+
+        var go = new GameObject(resourceName);
+        go.transform.SetParent(parent);
+        go.transform.position = pos;
+
+        float sprW   = sp.bounds.size.x;
+        float sprH   = sp.bounds.size.y;
+        float scaleX = size.x / sprW;
+        float scaleY = size.y / sprH;
+        float scale  = Mathf.Max(scaleX, scaleY) * 1.005f; // fill + overscale
+        go.transform.localScale = new Vector3(scale, scale, 1f);
+
+        var sr = go.AddComponent<SpriteRenderer>();
+        sr.sprite       = sp;
+        sr.sortingOrder = sortOrder;
+        return go;
+    }
+
+    private GameObject MakeSprite(string resourceName, Vector3 pos, Vector2 size, Transform parent, int sortOrder = 1)
+    {
+        var sp = Resources.Load<Sprite>($"Sprites/{resourceName}");
+        if (sp == null) return null;
+
+        var go = new GameObject(resourceName);
+        go.transform.SetParent(parent);
+        go.transform.position = pos;
+
+        // Schaal sprite zodat hij past binnen het footprint, aspect ratio behouden
+        float sprW = sp.bounds.size.x;
+        float sprH = sp.bounds.size.y;
+        float scaleX = size.x / sprW;
+        float scaleY = size.y / sprH;
+        float scale  = Mathf.Min(scaleX, scaleY); // fit, niet fill
+        go.transform.localScale = new Vector3(scale, scale, 1f);
+
+        var sr = go.AddComponent<SpriteRenderer>();
+        sr.sprite = sp;
+        sr.sortingOrder = sortOrder;
+        return go;
+    }
+
+    private static Sprite _squareSprite;
+    private static Sprite GetSquareSprite()
+    {
+        if (_squareSprite != null) return _squareSprite;
+        var tex = new Texture2D(1, 1);
+        tex.SetPixel(0, 0, Color.white);
+        tex.Apply();
+        _squareSprite = Sprite.Create(tex, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f), 1f);
+        return _squareSprite;
+    }
+
+    // ---- Resource names ----
+    private static string TileResourceName(TileType t) => t switch
+    {
+        TileType.Grass    => "Terrain/Grass",
+        TileType.Road     => "Terrain/roads",
+        TileType.FarmPlot => "crops",
+        TileType.Rock     => "Terrain/rock01",
+        TileType.Wood     => "logs",
+        _                 => null,
+    };
+
+    // ---- Placeholder colors ----
+    private static Color TileColor(TileType t) => t switch
+    {
+        TileType.Grass    => new Color(0.4f, 0.7f, 0.3f),
+        TileType.Road     => new Color(0.7f, 0.6f, 0.4f),
+        TileType.FarmPlot => new Color(0.6f, 0.4f, 0.2f),
+        TileType.Rock     => new Color(0.5f, 0.5f, 0.5f),
+        TileType.Wood     => new Color(0.4f, 0.25f, 0.1f),
+        TileType.Water    => new Color(0.2f, 0.5f, 0.9f),
+        _                 => new Color(0.4f, 0.7f, 0.3f),
+    };
+
+    private static Color BuildingColor(BuildingType t) => t switch
+    {
+        BuildingType.TownHall    => new Color(0.8f, 0.2f, 0.2f),
+        BuildingType.Mill        => new Color(0.8f, 0.6f, 0.1f),
+        BuildingType.Farm        => new Color(0.5f, 0.8f, 0.2f),
+        BuildingType.CowPen      => new Color(0.9f, 0.8f, 0.5f),
+        BuildingType.Campfire    => new Color(1.0f, 0.4f, 0.0f),
+        BuildingType.Rockpile    => new Color(0.55f, 0.55f, 0.55f),
+        BuildingType.Woodpile    => new Color(0.45f, 0.28f, 0.1f),
+        BuildingType.Bakery      => new Color(0.9f, 0.7f, 0.3f),
+        BuildingType.Dairy       => new Color(0.9f, 0.9f, 0.9f),
+        BuildingType.ChickenCoop => new Color(1.0f, 0.9f, 0.5f),
+        BuildingType.House       => new Color(0.6f, 0.4f, 0.8f),
+        BuildingType.WheatField  => new Color(0.9f, 0.8f, 0.2f),
+        BuildingType.Toolshed    => new Color(0.5f, 0.35f, 0.15f),
+        _                        => Color.magenta,
+    };
+
+    // ---- Helpers ----
+    private GameObject TilePrefab(TileType t) => t switch
+    {
+        TileType.Grass    => grassPrefab,
+        TileType.Road     => roadPrefab,
+        TileType.FarmPlot => farmPlotPrefab,
+        TileType.Rock     => rockPrefab,
+        TileType.Wood     => woodPrefab,
+        TileType.Water    => waterPrefab,
+        _                 => grassPrefab,
+    };
+
+    private GameObject BuildingPrefab(BuildingType t) => t switch
+    {
+        BuildingType.TownHall    => townHallPrefab,
+        BuildingType.Mill        => millPrefab,
+        BuildingType.Farm        => farmPrefab,
+        BuildingType.CowPen      => cowPenPrefab,
+        BuildingType.Campfire    => campfirePrefab,
+        BuildingType.Rockpile    => rockpilePrefab,
+        BuildingType.Woodpile    => woodpilePrefab,
+        BuildingType.Bakery      => bakeryPrefab,
+        BuildingType.Dairy       => dairyPrefab,
+        BuildingType.ChickenCoop => chickenCoopPrefab,
+        BuildingType.House       => housePrefab,
+        _                        => null,
+    };
+}

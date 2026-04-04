@@ -1,0 +1,559 @@
+fileFormatVersion: 2
+guid: a0a4ca3bd503d1541843dca1449b3ac4
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 522287965722338619
+    second: spa02_0
+  - first:
+      213: 1359118168163074576
+    second: spa02_1
+  - first:
+      213: 4936974578710218869
+    second: spa02_2
+  - first:
+      213: -138403164842724110
+    second: spa02_3
+  - first:
+      213: 3953319699230549092
+    second: spa02_4
+  - first:
+      213: -2644714638403168239
+    second: spa02_5
+  - first:
+      213: -3965290998024427261
+    second: spa02_6
+  - first:
+      213: -8238994734196570107
+    second: spa02_7
+  - first:
+      213: -6335162294660607589
+    second: spa02_8
+  - first:
+      213: -7200259673171775069
+    second: spa02_9
+  - first:
+      213: -4872415763414323115
+    second: spa02_10
+  - first:
+      213: 5660385910061054989
+    second: spa02_11
+  - first:
+      213: 4897518566769679144
+    second: spa02_12
+  - first:
+      213: 5470711979650242878
+    second: spa02_13
+  - first:
+      213: 4413968715195253013
+    second: spa02_14
+  - first:
+      213: 5415178714623572795
+    second: spa02_15
+  - first:
+      213: 3132133879258874126
+    second: spa02_16
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: spa02_0
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 50
+        width: 76
+        height: 49
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b35675b332a8f3700800000000000000
+      internalID: 522287965722338619
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spa02_1
+      rect:
+        serializedVersion: 2
+        x: 73
+        y: 62
+        width: 27
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 012c325e5ce8cd210800000000000000
+      internalID: 1359118168163074576
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spa02_2
+      rect:
+        serializedVersion: 2
+        x: 113
+        y: 50
+        width: 43
+        height: 49
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 578082dd838a38440800000000000000
+      internalID: 4936974578710218869
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spa02_3
+      rect:
+        serializedVersion: 2
+        x: 155
+        y: 61
+        width: 50
+        height: 26
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2f472cb0e0b441ef0800000000000000
+      internalID: -138403164842724110
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spa02_4
+      rect:
+        serializedVersion: 2
+        x: 221
+        y: 50
+        width: 48
+        height: 49
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 464e03422530dd630800000000000000
+      internalID: 3953319699230549092
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spa02_5
+      rect:
+        serializedVersion: 2
+        x: 263
+        y: 62
+        width: 27
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 11814b57c061c4bd0800000000000000
+      internalID: -2644714638403168239
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spa02_6
+      rect:
+        serializedVersion: 2
+        x: 288
+        y: 50
+        width: 62
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 30923b7a8d478f8c0800000000000000
+      internalID: -3965290998024427261
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spa02_7
+      rect:
+        serializedVersion: 2
+        x: 349
+        y: 61
+        width: 16
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 50846e9f0f539ad80800000000000000
+      internalID: -8238994734196570107
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spa02_8
+      rect:
+        serializedVersion: 2
+        x: 364
+        y: 62
+        width: 39
+        height: 28
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b915e48457bf418a0800000000000000
+      internalID: -6335162294660607589
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spa02_9
+      rect:
+        serializedVersion: 2
+        x: 402
+        y: 61
+        width: 49
+        height: 38
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3a1b602d9f9831c90800000000000000
+      internalID: -7200259673171775069
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spa02_10
+      rect:
+        serializedVersion: 2
+        x: 449
+        y: 62
+        width: 27
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 550fca7ada3b16cb0800000000000000
+      internalID: -4872415763414323115
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spa02_11
+      rect:
+        serializedVersion: 2
+        x: 100
+        y: 2
+        width: 84
+        height: 49
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d0cb0d4cefabd8e40800000000000000
+      internalID: 5660385910061054989
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spa02_12
+      rect:
+        serializedVersion: 2
+        x: 197
+        y: 2
+        width: 90
+        height: 49
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 82bdf25303b77f340800000000000000
+      internalID: 4897518566769679144
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spa02_13
+      rect:
+        serializedVersion: 2
+        x: 287
+        y: 14
+        width: 27
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e39d6877f8fdbeb40800000000000000
+      internalID: 5470711979650242878
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spa02_14
+      rect:
+        serializedVersion: 2
+        x: 311
+        y: 14
+        width: 17
+        height: 25
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 51186e60921914d30800000000000000
+      internalID: 4413968715195253013
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spa02_15
+      rect:
+        serializedVersion: 2
+        x: 314
+        y: 38
+        width: 13
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b3bf460a954962b40800000000000000
+      internalID: 5415178714623572795
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: spa02_16
+      rect:
+        serializedVersion: 2
+        x: 328
+        y: 13
+        width: 50
+        height: 35
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e01013e1b23977b20800000000000000
+      internalID: 3132133879258874126
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      spa02_0: 522287965722338619
+      spa02_1: 1359118168163074576
+      spa02_10: -4872415763414323115
+      spa02_11: 5660385910061054989
+      spa02_12: 4897518566769679144
+      spa02_13: 5470711979650242878
+      spa02_14: 4413968715195253013
+      spa02_15: 5415178714623572795
+      spa02_16: 3132133879258874126
+      spa02_2: 4936974578710218869
+      spa02_3: -138403164842724110
+      spa02_4: 3953319699230549092
+      spa02_5: -2644714638403168239
+      spa02_6: -3965290998024427261
+      spa02_7: -8238994734196570107
+      spa02_8: -6335162294660607589
+      spa02_9: -7200259673171775069
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
