@@ -24,7 +24,9 @@ MonoBehaviour:
   costWheatField: 150
   costChickenCoop: 100
   costBakery: 300
+  costMill: 400
   costDairy: 300
+  costToolshed: 175
   happinessBaseDelta: 0.1
   happinessTickSeconds: 10
   priceImpactPerHundred: -0.5

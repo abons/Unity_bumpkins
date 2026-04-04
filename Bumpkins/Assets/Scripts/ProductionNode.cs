@@ -144,6 +144,8 @@ public class ProductionNode : MonoBehaviour
         _occupied  = true;  // ook hier voor de zekerheid
         _workTimer = 0f;
         Debug.Log($"[Node:{nodeType}] Work started by {worker.bumpkinType}");
+        if (nodeType == NodeType.Cow)
+            GetComponentInChildren<CowAnimator>()?.SetMilking(true);
     }
 
     private void ProduceYield()
@@ -172,6 +174,7 @@ public class ProductionNode : MonoBehaviour
                 _ready    = false;   // koe op cooldown
                 _growTimer = 0f;
                 _occupied = false;
+                GetComponentInChildren<CowAnimator>()?.SetMilking(false);
                 Debug.Log($"[Node:Cow] Gemolken. Female loopt naar Farm. Koe cooldown {cowCooldown}s.");
                 var dairy = _worker.FindNearestDropOff(DropOffNode.DropOffType.Dairy);
                 if (dairy != null)

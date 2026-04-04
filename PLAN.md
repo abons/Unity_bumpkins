@@ -161,20 +161,20 @@ Zie [DESIGN.md](DESIGN.md) voor core loops, data model en entities.
 | ChickenCoop | 25g    | Nieuwe kip + ei-productie       |
 
 ### Implementatie
-- [ ] `BuildManager.cs` — singleton, houdt `inBuildMode` bij + gekozen gebouwtype
-- [ ] `BuildMenu` in UI — 3 knoppen: House / WheatField / ChickenCoop (toon goudkosten)
-- [ ] `GhostPreview` — semi-transparant sprite volgt muispositie, snap naar iso-grid
+- [x] `BuildManager.cs` — singleton, houdt `inBuildMode` bij + gekozen gebouwtype
+- [x] `BuildMenu` in UI — 3 knoppen: House / WheatField / ChickenCoop (toon goudkosten)
+- [x] `GhostPreview` — semi-transparant sprite volgt muispositie, snap naar iso-grid
   - Groen = geldig (gras-tile, niet bezet)
   - Rood = ongeldig (gebouw, weg, out-of-bounds)
-- [ ] Klik op geldig tile → `BuildManager.PlaceBuilding(gridPos, type)`
-  - Trekt gold af (`GameManager.SpendGold`)
+- [x] Klik op geldig tile → `BuildManager.PlaceBuilding(gridPos, type)`
+  - Trekt gold af (`GameManager.Buy()`)
   - Spawnt gebouw-sprite op iso-positie (zelfde flow als `GridMapBuilder`)
   - Registreert tile als bezet zodat overlap geblokkeerd wordt
-  - Ongeldig tile of onvoldoende gold → visuele feedback (kort rood flitsen)
-- [ ] Rechtermuisknop / Escape → bouw mode annuleren
-- [ ] House placement → `BumpkinSpawner.SpawnBumpkin(pos, random gender)` direct na plaatsing
-- [ ] WheatField placement → instantieer `ProductionNode` (type Wheat, startState grown=false)
-- [ ] ChickenCoop placement → instantieer `ChickenAnimator` + nieuwe `ProductionNode` (type Egg)
+  - Ongeldig tile of onvoldoende gold → ghost blijft rood / GM logt warning
+- [x] Rechtermuisknop / Escape → bouw mode annuleren
+- [x] House placement → `BuildManager.SpawnBumpkin()` direct na plaatsing
+- [x] WheatField placement → instantieer `ProductionNode` (type Wheat, startState grown=false)
+- [x] ChickenCoop placement → instantieer `ChickenAnimator`
 
 ### Validatieregels (simpel)
 - Alleen op `TileType.Grass` tiles

@@ -53,7 +53,7 @@ public class ChickenAnimator : MonoBehaviour
         {
             var eggGo = new GameObject("Egg");
             eggGo.transform.SetParent(transform.parent);
-            eggGo.transform.localScale = transform.localScale * 0.7f;
+            eggGo.transform.localScale = transform.localScale * 0.25f;
             _eggSr = eggGo.AddComponent<SpriteRenderer>();
             _eggSr.sprite       = _sprEgg;
             _eggSr.sortingOrder = _sr != null ? _sr.sortingOrder + 1 : 1;

@@ -21,6 +21,10 @@ public class GameManager : MonoBehaviour
     // --- Wheat in storage (waiting for bakery) ---
     public int WheatStored { get; private set; }
 
+    // --- Building unlocks ---
+    public bool MillUnlocked  { get; private set; }
+    public bool DairyUnlocked { get; private set; }
+
     private float _happinessTick;
 
     void Awake()
@@ -46,6 +50,10 @@ public class GameManager : MonoBehaviour
             TickHappiness();
         }
     }
+
+    // ---- Building unlocks ----
+    public void UnlockMill()  { MillUnlocked  = true; Debug.Log("[GM] Molen ontgrendeld!"); }
+    public void UnlockDairy() { DairyUnlocked = true; Debug.Log("[GM] Zuivelfabriek ontgrendeld!"); }
 
     // ---- Harvesting ----
     public void AddWheat(int amount = 1)

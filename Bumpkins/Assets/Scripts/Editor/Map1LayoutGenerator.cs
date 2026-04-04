@@ -48,14 +48,14 @@ public static class Map1LayoutGenerator
         //  Farm = enkel drop-off gebouw voor tarwe én melk (Farm + Dairy samengevoegd)
         data.buildings = new BuildingEntry[]
         {
-            new BuildingEntry { type = BuildingType.Mill,        position = new Vector2Int(12, 13), size = new Vector2Int(3, 3) },
-            new BuildingEntry { type = BuildingType.Farm,        position = new Vector2Int( 7,  7), size = new Vector2Int(2, 2) }, // drop-off
-            new BuildingEntry { type = BuildingType.WheatField,  position = new Vector2Int(10,  7), size = new Vector2Int(2, 2) },
-            new BuildingEntry { type = BuildingType.WheatField,  position = new Vector2Int(13,  7), size = new Vector2Int(2, 2) },
-            new BuildingEntry { type = BuildingType.CowPen,      position = new Vector2Int(14,  1), size = new Vector2Int(4, 3) },
-            new BuildingEntry { type = BuildingType.ChickenCoop, position = new Vector2Int(17,  9), size = new Vector2Int(2, 2) },
-            new BuildingEntry { type = BuildingType.ChickenCoop, position = new Vector2Int(20,  9), size = new Vector2Int(2, 2) },
-            new BuildingEntry { type = BuildingType.ChickenCoop, position = new Vector2Int(17, 11), size = new Vector2Int(2, 2) },
+            new BuildingEntry { type = BuildingType.Mill,        position = new Vector2Int(12, 13), size = new Vector2Int(3, 2) },
+            new BuildingEntry { type = BuildingType.Farm,        position = new Vector2Int( 7,  7), size = new Vector2Int(3, 3) }, // drop-off
+            new BuildingEntry { type = BuildingType.WheatField,  position = new Vector2Int(10,  7), size = new Vector2Int(1, 1) },
+            new BuildingEntry { type = BuildingType.WheatField,  position = new Vector2Int(13,  7), size = new Vector2Int(1, 1) },
+            new BuildingEntry { type = BuildingType.Cow,         position = new Vector2Int(14,  1), size = new Vector2Int(4, 3) },
+            new BuildingEntry { type = BuildingType.ChickenCoop, position = new Vector2Int(17, 10), size = new Vector2Int(1, 1) },
+            new BuildingEntry { type = BuildingType.ChickenCoop, position = new Vector2Int(20,  9), size = new Vector2Int(1, 1) },
+            new BuildingEntry { type = BuildingType.ChickenCoop, position = new Vector2Int(17, 11), size = new Vector2Int(1, 1) },
             new BuildingEntry { type = BuildingType.House,       position = new Vector2Int( 8, 13), size = new Vector2Int(2, 2) },
             new BuildingEntry { type = BuildingType.House,       position = new Vector2Int( 6, 13), size = new Vector2Int(2, 2) },
             new BuildingEntry { type = BuildingType.Toolshed,    position = new Vector2Int( 9,  5), size = new Vector2Int(2, 2) },

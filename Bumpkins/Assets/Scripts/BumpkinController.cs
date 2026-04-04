@@ -31,6 +31,7 @@ public class BumpkinController : MonoBehaviour
     private DropOffNode     _targetDropOff;
     private ChickenAnimator _targetChicken;
     private BuildingTag     _targetHouse;   // voor makeBaby
+    private ConstructionSite _targetSite;   // voor bouwen
 
     public bool IsMale   => bumpkinType == BumpkinType.Male;
     public bool IsFemale => bumpkinType == BumpkinType.Female;
@@ -79,6 +80,15 @@ public class BumpkinController : MonoBehaviour
         _target        = node.transform.position;
         _moving        = true;
         SetState("WalkingToDropOff");
+    }
+
+    // ---- Called when assigned to a ConstructionSite ----
+    public void AssignToConstruction(ConstructionSite site)
+    {
+        _targetSite = site;
+        _target     = site.WorkPosition;
+        _moving     = true;
+        SetStateRaw("WalkingToConstruction");
     }
 
     void Update()
@@ -145,6 +155,19 @@ public class BumpkinController : MonoBehaviour
                 BabySystem.Instance.OnFemaleArrived(this, _targetHouse);
             _targetHouse = null;
         }
+        else if (_currentState == "WalkingToConstruction")
+        {
+            if (_targetSite != null && _targetSite.CurrentStage != ConstructionSite.Stage.Done)
+            {
+                SetStateRaw("Constructing");
+                StartCoroutine(DoConstruction());
+            }
+            else
+            {
+                _targetSite = null;
+                SetState("Idle");
+            }
+        }
         else
         {
             if (_playerMoved)
@@ -177,7 +200,7 @@ public class BumpkinController : MonoBehaviour
     {
         yield return new WaitForSeconds(seconds);
         isChild = false;
-        transform.localScale = Vector3.one;  // normale grootte
+        transform.localScale = new Vector3(3f, 3f, 1f);  // normale grootte
         Debug.Log($"[BabySystem] {name} is volwassen geworden!");
         SetState("Idle");
     }
@@ -196,6 +219,16 @@ public class BumpkinController : MonoBehaviour
         SetStateRaw("InBuilding");
         yield return new WaitForSeconds(seconds);
         if (sr) sr.enabled = true;
+        SetState("Idle");
+    }
+
+    private IEnumerator DoConstruction()
+    {
+        var site = _targetSite;
+        yield return new WaitForSeconds(site != null ? site.workDuration : 4f);
+        if (site != null && site.CurrentStage != ConstructionSite.Stage.Done)
+            site.DeliverWork();
+        _targetSite = null;
         SetState("Idle");
     }
 
@@ -225,14 +258,34 @@ public class BumpkinController : MonoBehaviour
     {
         if (isChild)   return false;
         if (!freeWill) return false;
+
+        // Check construction sites (males only)
+        if (IsMale)
+        {
+            var sites = FindObjectsByType<ConstructionSite>(FindObjectsSortMode.None);
+            ConstructionSite bestSite = null;
+            float bestDist = float.MaxValue;
+            foreach (var s in sites)
+            {
+                if (!s.CanBeWorked) continue;
+                float d = Vector2.Distance(transform.position, s.transform.position);
+                if (d < bestDist) { bestDist = d; bestSite = s; }
+            }
+            if (bestSite != null && bestSite.TryReserveWorker(this))
+            {
+                AssignToConstruction(bestSite);
+                return true;
+            }
+        }
+
         var nodes = FindObjectsByType<ProductionNode>(FindObjectsSortMode.None);
         ProductionNode best = null;
-        float bestDist = float.MaxValue;
+        float bestNodeDist = float.MaxValue;
         foreach (var n in nodes)
         {
             if (!n.CanBeWorkedBy(this)) continue;
             float d = Vector2.Distance(transform.position, n.transform.position);
-            if (d < bestDist) { bestDist = d; best = n; }
+            if (d < bestNodeDist) { bestNodeDist = d; best = n; }
         }
         if (best != null)
         {

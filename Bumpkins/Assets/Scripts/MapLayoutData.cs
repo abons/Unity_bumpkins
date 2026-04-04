@@ -58,18 +58,18 @@ public class MapLayoutData : ScriptableObject
     /// <summary>World position for a building footprint bottom-left at (col,row), size (w,h).</summary>
     public Vector3 BuildingToWorld(int col, int row, int w, int h, float z = -0.1f)
     {
-        // center of footprint in iso space
-        float cx = col + w * 0.5f;
-        float cy = row + h * 0.5f;
+        // center of footprint = average of occupied tile centers
+        float cx = col + (w - 1) * 0.5f;
+        float cy = row + (h - 1) * 0.5f;
         float x = (cx - cy) * isoHalfW;
         float y = (cx + cy) * isoHalfH;
         return new Vector3(x, y, z);
     }
 
     /// <summary>Sort order for a building at bottom-left (col,row) size (w,h).
-    /// +10 offset zodat gebouwen altijd boven grastiles op dezelfde diepte renderen.</summary>
+    /// +1 offset: boven eigen tegel, maar achter tegels die visueel ervoor liggen (lagere col+row).</summary>
     public int BuildingSortOrder(int col, int row, int w, int h)
-        => -(col + row) + 10;
+        => -(col + row) + 1;
 
 #if UNITY_EDITOR
     [ContextMenu("Reset terrain to Grass")]

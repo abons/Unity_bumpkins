@@ -30,10 +30,17 @@ public class TestBumpkinSetup : MonoBehaviour
             sm.AddComponent<SelectionManager>();
         }
 
+        // BuildManager
+        if (BuildManager.Instance == null)
+        {
+            var bldMgr = new GameObject("BuildManager");
+            bldMgr.AddComponent<BuildManager>();
+        }
+
         // Campfire staat op iso-grid (13,11) → world ≈ (1.0, 6.1)
         // Bumpkins spawnen iets voor het kampvuur (lagere y = dichter bij camera)
-        var male = SpawnBumpkin("Bumpkin_Male",   new Vector3(0.7f, 5.7f, 0f), BumpkinController.BumpkinType.Male,   new Color(0.3f, 0.6f, 1f));
-                   SpawnBumpkin("Bumpkin_Female", new Vector3(1.3f, 5.6f, 0f), BumpkinController.BumpkinType.Female, new Color(1f, 0.6f, 0.8f));
+        var male = SpawnBumpkin("Bumpkin_Male",   new Vector3(2.1f, 17.1f, 0f), BumpkinController.BumpkinType.Male,   new Color(0.3f, 0.6f, 1f));
+                   SpawnBumpkin("Bumpkin_Female", new Vector3(3.9f, 16.8f, 0f), BumpkinController.BumpkinType.Female, new Color(1f, 0.6f, 0.8f));
 
         // Pre-select male bumpkin
         SelectionManager.Instance?.Select(male);
@@ -51,11 +58,11 @@ public class TestBumpkinSetup : MonoBehaviour
         sr.sprite       = sp != null ? sp : MakeSquareSprite();
         sr.color        = sp != null ? Color.white : color;
         sr.sortingOrder = 10;
-        go.transform.localScale = new Vector3(1.0f, 1.0f, 1f);
+        go.transform.localScale = new Vector3(3.0f, 3.0f, 1f);
 
         // Collider for click detection
         var col = go.AddComponent<CircleCollider2D>();
-        col.radius = 0.1f;
+        col.radius = 0.3f;
 
         // Logic
         var bc = go.AddComponent<BumpkinController>();

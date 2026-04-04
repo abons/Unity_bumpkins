@@ -17,6 +17,28 @@ public class ClickHandler : MonoBehaviour
         var mouse = Mouse.current;
         if (mouse == null) return;
 
+        // ---- Build mode intercept ----
+        var bm = BuildManager.Instance;
+        if (bm != null && bm.InBuildMode)
+        {
+            if (mouse.rightButton.wasPressedThisFrame)
+            {
+                bm.ExitBuildMode();
+                return;
+            }
+            if (mouse.leftButton.wasPressedThisFrame)
+            {
+                if (UIManager.IsPointerOverGUI)
+                {
+                    Debug.Log("[Build] klik geblokkeerd door GUI");
+                    return;
+                }
+                Vector2 buildPos = _cam.ScreenToWorldPoint(mouse.position.ReadValue());
+                bm.HandleBuildClick(buildPos);
+            }
+            return;  // blokkeer normale klik-logica in build mode
+        }
+
         // Rechtermuis → deselect
         if (mouse.rightButton.wasPressedThisFrame)
         {
@@ -63,6 +85,16 @@ public class ClickHandler : MonoBehaviour
         if (dropOff != null)
         {
             SelectionManager.Instance?.SelectedBumpkin?.AssignToDropOff(dropOff);
+            return;
+        }
+
+        // ConstructionSite aangeklikt → stuur geselecteerde male bumpkin erheen
+        var site = go.GetComponent<ConstructionSite>();
+        if (site != null && site.CanBeWorked)
+        {
+            var sel = SelectionManager.Instance?.SelectedBumpkin;
+            if (sel != null && sel.IsMale && site.TryReserveWorker(sel))
+                sel.AssignToConstruction(site);
             return;
         }
 

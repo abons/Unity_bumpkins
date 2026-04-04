@@ -21,7 +21,7 @@ public class GridMapBuilder : MonoBehaviour
     public GameObject townHallPrefab;
     public GameObject millPrefab;
     public GameObject farmPrefab;
-    public GameObject cowPenPrefab;
+    public GameObject cowPrefab;
     public GameObject campfirePrefab;
     public GameObject rockpilePrefab;
     public GameObject woodpilePrefab;
@@ -64,21 +64,23 @@ public class GridMapBuilder : MonoBehaviour
                 bool hasColNeighbor = layout.GetTile(col, row - 1) == TileType.Road
                                    || layout.GetTile(col, row + 1) == TileType.Road;
 
-                // roads.png loopt standaard langs de col-as (N-S in iso)
-                // langs de row-as (E-W) → flip Y
-                bool flipY = hasRowNeighbor && !hasColNeighbor;
-
-                var roadGo = MakeSprite("Terrain/roads", center, tileVec, parent, sOrder + 1);
-                if (roadGo != null)
+                // Col-axis sprite (standaard, geen flip)
+                if (hasColNeighbor || (!hasRowNeighbor && !hasColNeighbor))
                 {
-                    roadGo.name = $"Road_{col}_{row}";
-                    if (flipY && roadGo.TryGetComponent<SpriteRenderer>(out var rsr))
-                        rsr.flipY = true;
+                    var roadGo = MakeSpriteFill("Terrain/roads", center, tileVec, parent, sOrder + 1);
+                    if (roadGo != null) roadGo.name = $"Road_{col}_{row}";
+                    else { var ph = MakePlaceholder(TileColor(TileType.Road), center, tileVec, parent, sOrder + 1); ph.name = $"Road_{col}_{row}"; }
                 }
-                else
+
+                // Row-axis sprite (flipY) — ook tekenen bij corners/kruisingen
+                if (hasRowNeighbor)
                 {
-                    var ph = MakePlaceholder(TileColor(TileType.Road), center, tileVec, parent, sOrder + 1);
-                    ph.name = $"Road_{col}_{row}";
+                    var roadGoR = MakeSpriteFill("Terrain/roads", center, tileVec, parent, sOrder + 1);
+                    if (roadGoR != null)
+                    {
+                        roadGoR.name = $"RoadR_{col}_{row}";
+                        if (roadGoR.TryGetComponent<SpriteRenderer>(out var rsr)) rsr.flipY = true;
+                    }
                 }
             }
             else if (tile != TileType.Grass)
@@ -109,6 +111,19 @@ public class GridMapBuilder : MonoBehaviour
         var parent = new GameObject("Buildings").transform;
         parent.SetParent(transform);
 
+        // Unlock buildings based on existing map buildings
+        var gm = GameManager.Instance;
+        if (gm != null)
+        {
+            foreach (var b in layout.buildings)
+            {
+                if (b.type == BuildingType.Toolshed || b.type == BuildingType.Mill)
+                    gm.UnlockMill();
+                if (b.type == BuildingType.Mill)
+                    gm.UnlockDairy();
+            }
+        }
+
         foreach (var b in layout.buildings)
         {
             var center = layout.BuildingToWorld(b.position.x, b.position.y, b.size.x, b.size.y);
@@ -119,7 +134,9 @@ public class GridMapBuilder : MonoBehaviour
             int   bSort = layout.BuildingSortOrder(b.position.x, b.position.y, b.size.x, b.size.y);
 
             // Root: scale 1 → collider size = world size
-            var root = new GameObject($"{b.type}_{b.position.x}_{b.position.y}");
+            var root = new GameObject(b.type == BuildingType.Cow
+                ? $"Cow_{b.position.x}_{b.position.y}"
+                : $"{b.type}_{b.position.x}_{b.position.y}");
             root.transform.SetParent(parent);
             root.transform.position = center;
 
@@ -138,13 +155,11 @@ public class GridMapBuilder : MonoBehaviour
                 go.transform.localPosition = Vector3.zero;
                 go.transform.localScale    = new Vector3(size.x, size.y, 1f);
             }
-            else
+            else if (b.type != BuildingType.Cow) // koe heeft eigen CowSprite child
             {
                 var sr = visual.AddComponent<SpriteRenderer>();
                 sr.sortingOrder = bSort;
-                var spritePath = b.type == BuildingType.CowPen
-                    ? "Sprites/Units/cow_se"
-                    : b.type == BuildingType.Bakery
+                var spritePath = b.type == BuildingType.Bakery
                     ? "Sprites/Buildings/Mill"
                     : b.type == BuildingType.Woodpile
                     ? "Sprites/Buildings/Logpile"
@@ -154,7 +169,8 @@ public class GridMapBuilder : MonoBehaviour
                 {
                     sr.sprite = sp;
                     float scale = Mathf.Min(size.x / sp.bounds.size.x, size.y / sp.bounds.size.y);
-                    scale = Mathf.Min(scale, 1.0f);
+                    // Per-type schaal-multiplier
+                    if (b.type == BuildingType.Campfire)    scale *= 0.4f;
                     visual.transform.localScale = new Vector3(scale, scale, 1f);
                 }
                 else
@@ -176,7 +192,8 @@ public class GridMapBuilder : MonoBehaviour
                 if (csp != null)
                 {
                     csr.sprite = csp;
-                    float cScale = size.x * 0.075f / csp.bounds.size.x;
+                    // Kip = 9% van de breedte van het gebouw
+                    float cScale = size.x * 0.09f / csp.bounds.size.x;
                     chickenGo.transform.localScale = new Vector3(cScale, cScale, 1f);
                 }
                 csr.sortingOrder = bSort + 1;
@@ -202,7 +219,7 @@ public class GridMapBuilder : MonoBehaviour
                 dropOff.dropOffType = DropOffNode.DropOffType.Bakery;
             }
 
-            // ProductionNode op WheatField en CowPen
+            // ProductionNode op WheatField en Cow
             if (b.type == BuildingType.Farm)
             {
                 var dropOff = root.AddComponent<DropOffNode>();
@@ -217,11 +234,27 @@ public class GridMapBuilder : MonoBehaviour
                 // Voor een wxh footprint: y-offset = (w+h)/2 * isoHalfH
                 node.workOffset = new Vector2(0f, -(b.size.x + b.size.y) * 0.5f * layout.isoHalfH);
             }
-            if (b.type == BuildingType.CowPen)
+            if (b.type == BuildingType.Cow)
             {
                 var node = root.AddComponent<ProductionNode>();
                 node.nodeType = ProductionNode.NodeType.Cow;
                 node.workOffset = new Vector2(0f, -(b.size.x + b.size.y) * 0.5f * layout.isoHalfH);
+
+                // Koe-sprite beweegt los als dier (geen pen aanwezig)
+                var cowGo = new GameObject("CowSprite");
+                cowGo.transform.SetParent(root.transform);
+                cowGo.transform.localPosition = Vector3.zero;
+                var csr = cowGo.AddComponent<SpriteRenderer>();
+                var csp = Resources.Load<Sprite>("Sprites/Units/cow_se");
+                if (csp != null)
+                {
+                    csr.sprite = csp;
+                    float cScale = Mathf.Min(size.x / csp.bounds.size.x, size.y / csp.bounds.size.y) * 0.175f;
+                    cowGo.transform.localScale = new Vector3(cScale, cScale, 1f);
+                }
+                csr.sortingOrder = bSort + 1;
+                var anim = cowGo.AddComponent<CowAnimator>();
+                anim.wanderBounds = new Vector2(size.x * 0.35f, size.y * 0.35f);
             }
         }
     }
@@ -326,7 +359,7 @@ public class GridMapBuilder : MonoBehaviour
         BuildingType.TownHall    => new Color(0.8f, 0.2f, 0.2f),
         BuildingType.Mill        => new Color(0.8f, 0.6f, 0.1f),
         BuildingType.Farm        => new Color(0.5f, 0.8f, 0.2f),
-        BuildingType.CowPen      => new Color(0.9f, 0.8f, 0.5f),
+        BuildingType.Cow         => new Color(0.9f, 0.8f, 0.5f),
         BuildingType.Campfire    => new Color(1.0f, 0.4f, 0.0f),
         BuildingType.Rockpile    => new Color(0.55f, 0.55f, 0.55f),
         BuildingType.Woodpile    => new Color(0.45f, 0.28f, 0.1f),
@@ -356,7 +389,7 @@ public class GridMapBuilder : MonoBehaviour
         BuildingType.TownHall    => townHallPrefab,
         BuildingType.Mill        => millPrefab,
         BuildingType.Farm        => farmPrefab,
-        BuildingType.CowPen      => cowPenPrefab,
+        BuildingType.Cow         => cowPrefab,
         BuildingType.Campfire    => campfirePrefab,
         BuildingType.Rockpile    => rockpilePrefab,
         BuildingType.Woodpile    => woodpilePrefab,

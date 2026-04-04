@@ -40,7 +40,7 @@ public class BabySystem : MonoBehaviour
         // Spawn baby.png als child van het huis
         var babyGo = new GameObject("Baby");
         babyGo.transform.SetParent(house.transform);
-        babyGo.transform.localPosition = new Vector3(-0.5f, -0.1f, 0f);
+        babyGo.transform.localPosition = new Vector3(-1.5f, -0.3f, 0f);
         babyGo.transform.localScale    = Vector3.one;
         var sr = babyGo.AddComponent<SpriteRenderer>();
         sr.sprite       = Resources.Load<Sprite>("Sprites/Units/baby");
@@ -66,10 +66,10 @@ public class BabySystem : MonoBehaviour
     {
         var go = new GameObject(isBoy ? "KidBoy" : "KidGirl");
         go.transform.position = (Vector3)pos + new Vector3(Random.Range(-0.2f, 0.2f), 0f, 0f);
-        go.transform.localScale = Vector3.one * 0.55f;   // kleiner dan volwassene
+        go.transform.localScale = Vector3.one * (0.55f * 3f);   // kleiner dan volwassene
 
         var col = go.AddComponent<CircleCollider2D>();
-        col.radius = 0.1f;
+        col.radius = 0.3f;
 
         var sr = go.AddComponent<SpriteRenderer>();
         sr.sortingOrder = 10;

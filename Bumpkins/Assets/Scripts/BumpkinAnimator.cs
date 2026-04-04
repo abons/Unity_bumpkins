@@ -83,17 +83,33 @@ public class BumpkinAnimator : MonoBehaviour
         {
             case "Working":
                 var node = _bc.CurrentNode;
-                // Teleporteer bumpkin naar de node zodat de sprite op de juiste plek staat
                 if (node != null)
-                    transform.position = node.transform.position;
-                if (node != null && node.nodeType == ProductionNode.NodeType.Cow)
-                    SetSprite(_sprMilk);
-                else
-                    SetSprite(_sprHarvest);
+                {
+                    if (node.nodeType == ProductionNode.NodeType.Cow)
+                    {
+                        // Snap bumpkin to waar de koe werkelijk staat (niet het node-centrum)
+                        var cowAnim = node.GetComponentInChildren<CowAnimator>();
+                        transform.position = cowAnim != null
+                            ? cowAnim.transform.position
+                            : node.transform.position;
+                        SetSprite(_sprMilk);
+                    }
+                    else
+                    {
+                        transform.position = node.transform.position;
+                        SetSprite(_sprHarvest);
+                    }
+                }
+                break;
+
+            case "Constructing":
+                SetSprite(_sprHarvest);  // bouwen = dezelfde hack-animatie als oogsten
                 break;
 
             case "WalkingToDropOff":
-                SetSprite(_bc.CarriedMilk > 0 ? _sprCarryMilk : _sprCarry);
+                if (_bc.CarriedMilk > 0)        SetSprite(_sprCarryMilk);
+                else if (_bc.CarriedWheat > 0)  SetSprite(_sprCarry);
+                else                            SetSprite(_sprIdle);
                 break;
 
             default:

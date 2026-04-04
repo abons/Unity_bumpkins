@@ -2,6 +2,76 @@
 
 ---
 
+## Sessie 5 — 4 april 2026 (build mechanic + constructie-systeem)
+
+### ConstructionSite.cs (nieuw)
+- Stages: `Resources` → `Roofing` → `Done`
+- **Resources stage**: Logpile + Rockpile spawnen naast de bouwplaats; 3 male-trips nodig
+  - Bumpkin loopt naar logpile-positie (`WorkPosition`), werkt 4s (`m_harvest`-sprite)
+- **Roofing stage**: piles verdwijnen, sprite krijgt sepia tint (`0.85, 0.72, 0.50`); 2 trips nodig
+- **Complete**: tint weg (wit), `ActivateBuilding()` activeert type-specifieke componenten
+  - House → `BuildingTag.isHouse=true` + `SpawnBumpkin()` (random gender)
+  - Toolshed → `BuildingTag.isHouse=false`
+  - ChickenCoop → `ChickenAnimator` op chicken child
+- `TryAutoAssignWorkers()` gecalled bij `Start()` (one frame delay) en na elke stageovergang
+- Blueprint: blauw-transparant tint (`0.65, 0.85, 1.0, 0.55`) via `GetComponentInChildren<SpriteRenderer>()`
+- `TryReserveWorker(b)` controleert `IsMale` + `maxWorkers`; `DeliverWork()` decrementeert worker count
+
+### BuildManager.cs — veranderingen
+- Bouwmenu: **House / Toolshed / ChickenCoop** (WheatField verwijderd)
+- `IsValidPlacement`: extra check — tile moet naast een road-tile liggen (road-snap)
+  - `HasAdjacentRoad()` controleert 4 buren
+- `PlaceBuilding()`: maakt nu alleen root + visual child + ConstructionSite component
+  - Alle type-specifieke logica zit in `ConstructionSite.ActivateBuilding()`
+- `CostFor()`: Toolshed → `cfg.costToolshed`
+
+### UIManager.cs
+- "Tarweveld"-knop vervangen door **"Schuur (Toolshed)"** — toont `cfg.costToolshed`
+
+### BumpkinController.cs
+- `_targetSite: ConstructionSite` field toegevoegd
+- `AssignToConstruction(site)` — state `WalkingToConstruction`, target = `site.WorkPosition`
+- `OnReachedTarget` → `WalkingToConstruction`: start `DoConstruction()` coroutine
+- `DoConstruction()`: wacht `site.workDuration`, roept `site.DeliverWork()`, gaat Idle
+- `TryFindWork()`: males checken eerst `ConstructionSite.CanBeWorked` voor ze naar ProductionNodes zoeken
+
+### BumpkinAnimator.cs
+- `"Constructing"` state → `_sprHarvest` sprite
+
+### ClickHandler.cs
+- Click op `ConstructionSite`: stuur geselecteerde male bumpkin erheen (via `TryReserveWorker`)
+
+---
+
+### BuildManager.cs
+- Singleton, aangemaakt door `TestBumpkinSetup.Awake()`
+- `InBuildMode` + `SelectedType` bijgehouden
+- `occupiedTiles: HashSet<Vector2Int>` geïnitialiseerd vanuit `MapLayoutData` (niet-gras tiles + gebouw-footprints)
+- `WorldToTile(worldPos)` — inverse van `TileToWorld`: `col = (x/isoHalfW + y/isoHalfH) / 2`, `row = (y/isoHalfH - x/isoHalfW) / 2`, afgerond
+- Ghost preview: semi-transparant sprite (groen = geldig, rood = ongeldig), snapped naar iso-grid, sortingOrder 50
+- `PlaceBuilding()`: spawn root + visual + BoxCollider2D, zelfde patroon als GridMapBuilder
+  - House → `BuildingTag.isHouse=true` + `SpawnBumpkin()` (random gender)
+  - WheatField → `ProductionNode(NodeType.WheatField)` + `visualSpriteRenderer`
+  - ChickenCoop → `ChickenAnimator` op child chicken object
+- `SpawnBumpkin()`: zelfde patroon als TestBumpkinSetup (SR + CC + BC + BumpkinClick + BumpkinAnimator)
+- Kosten van GameConfig: `costHouse`, `costWheatField`, `costChickenCoop`
+
+### UIManager.cs — build menu
+- 3 bouwknoppen links onder de resource labels (y = 148):
+  - Huis (costHouse g), Tarweveld (costWheatField g), Kippenhok (costChickenCoop g)
+- Knop kleur: geel = actief, wit = beschikbaar, grijs = niet genoeg gold
+- Toggle: klik actieve knop opnieuw → `ExitBuildMode()`
+- "RMB / ESC = annuleren" zichtbaar tijdens build mode
+- `IsPointerOverGUI` uitgebreid: OR over freewill-knop + alle bouwknoppen
+
+### ClickHandler.cs — build mode intercept
+- Aan top van `Update()`: als `BuildManager.InBuildMode`:
+  - RMB → `ExitBuildMode()`
+  - LMB → `HandleBuildClick(worldPos)` (tenzij muis over GUI)  
+  - `return` — normale klik-logica overgeslagen
+
+---
+
 ## Sessie 4 — 2 april 2026 (auto-gedrag, baby-systeem, UI, touch, APK)
 
 ### Auto-harvest + auto-assign

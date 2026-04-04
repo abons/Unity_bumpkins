@@ -26,6 +26,7 @@ public class GameConfig : ScriptableObject
     public int costWheatField    = 150;
     public int costChickenCoop   = 100;
     public int costBakery        = 300;
+    public int costMill          = 400;
     public int costDairy         = 300;
     public int costToolshed      = 175;
 

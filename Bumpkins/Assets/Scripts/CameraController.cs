@@ -12,18 +12,18 @@ public class CameraController : MonoBehaviour
 
     [Header("Zoom")]
     public float zoomSpeed = 2f;
-    public float zoomMin   = 4f;
-    public float zoomMax   = 16f;
+    public float zoomMin   = 12f;
+    public float zoomMax   = 48f;
 
-    [Header("Bounds (map 24x18)")]
-    public float minX = 0f;
-    public float maxX = 24f;
+    [Header("Bounds (map 24x18, iso)")]
+    public float minX = -28f;
+    public float maxX = 38f;
     public float minY = 0f;
-    public float maxY = 18f;
+    public float maxY = 36f;
 
     [Header("Start Position")]
-    public Vector3 startPosition = new Vector3(1f, 6f, -10f);
-    public float   startSize     = 4f;
+    public Vector3 startPosition = new Vector3(3f, 18f, -10f);
+    public float   startSize     = 12f;
 
     private Camera _cam;
     private Vector3 _dragOrigin;
@@ -35,6 +35,24 @@ public class CameraController : MonoBehaviour
         transform.position    = startPosition;
         _cam.orthographicSize = startSize;
         _cam.backgroundColor  = new Color(0.35f, 0.55f, 0.25f); // gras groen
+    }
+
+    void Start()
+    {
+        // Bereken bounds op basis van layout zodat inspector-waarden niet stalen
+        var layout = FindFirstObjectByType<GridMapBuilder>()?.layout;
+        if (layout != null)
+        {
+            float hw = layout.isoHalfW;
+            float hh = layout.isoHalfH;
+            int   c  = layout.cols - 1;
+            int   r  = layout.rows - 1;
+            // Uiterste iso-coördinaten + marge
+            minX = -(r * hw) - 4f;
+            maxX =  (c * hw) + 4f;
+            minY = -2f;
+            maxY =  (c + r) * hh + 4f;
+        }
     }
 
     void Update()
