@@ -70,10 +70,25 @@ private static (int w, int h) FootprintFor(BuildingType type) => type switch
 {
     BuildingType.ChickenCoop => (1, 1),
     BuildingType.Mill        => (3, 2),
+    BuildingType.Farm        => (3, 3),
+    BuildingType.Dairy       => (3, 3),
     _                        => (2, 2),
 };
 ```
 All ghost sizing, snap position, overlay, occupied-tile marking, placement, and validation use this. Never hardcode `2` — always call `FootprintFor`.
+
+### DoorExit helper (BuildManager)
+
+`BuildManager` uses a `DoorExit(BuildingType, Vector2Int)` helper for the road start tile:
+```csharp
+private static Vector2Int DoorExit(BuildingType type, Vector2Int gridPos) => type switch
+{
+    BuildingType.Toolshed => new Vector2Int(gridPos.x,     gridPos.y - 1), // SE: step -row
+    BuildingType.Mill     => new Vector2Int(gridPos.x + 1, gridPos.y - 1), // SE corner: +col -row
+    _                     => new Vector2Int(gridPos.x - 1, gridPos.y),     // SW: step -col
+};
+```
+All four road-spawning call sites (ghost preview + placement for each type) use this. Never hardcode the exit tile position.
 
 ## Sort Order Rules
 
@@ -151,11 +166,12 @@ Buildings with wrong `size` in the asset block adjacent tiles. If a tile reports
 
 ## Auto-Road Generation (BuildManager)
 
-When a house or toolshed is placed, a road is auto-generated from the door exit tile to the nearest existing road tile:
-- **House door**: SW exit = `(gridPos.x - 1, gridPos.y)`
-- **Toolshed door**: SE exit = `(gridPos.x + 1, gridPos.y - 1)`
+When a house, toolshed, mill, farm, or dairy is placed, a road is auto-generated from the door exit tile to the nearest existing road tile. Exit tiles via `DoorExit()`:
+- **House / Farm / Dairy door**: SW exit = `(gridPos.x - 1, gridPos.y)`
+- **Toolshed door**: SE exit = `(gridPos.x, gridPos.y - 1)`
+- **Mill door**: SE corner exit = `(gridPos.x + 1, gridPos.y - 1)`
 
-Corner turn tiles get both road sprites spawned.
+Ghost road preview is also shown for all five types. Corner turn tiles get both road sprites spawned.
 
 ## Common Mistakes to Avoid
 
@@ -171,6 +187,7 @@ Corner turn tiles get both road sprites spawned.
 10. Placing a static sprite on the `visual` child for `Cow` — the cow sprite is owned by `CowAnimator` on a `CowSprite` child; skip the general sprite block for Cow
 11. Snapping the milking bumpkin to `node.transform.position` for cow nodes → bumpkin appears as a second cow at pen center; use `CowAnimator.transform.position` instead
 12. Forgetting to assign `junction = from` before early returns in `ComputeRoadPath` → CS0177 `out` parameter not assigned on all paths
+13. Hardcoding door exit position as `(x+1, y-1)` for Toolshed → first road tile lands one column too far; use `DoorExit()` helper. Toolshed exits at `(x, y-1)`, Mill at `(x+1, y-1)`.
 
 ## Building Unlock System
 

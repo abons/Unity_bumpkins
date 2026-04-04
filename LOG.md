@@ -2,6 +2,59 @@
 
 ---
 
+## Sessie 7 — 4 april 2026 (wegalignment fixes Mill/Dairy)
+
+### DoorExit helper (BuildManager)
+- `DoorExit(BuildingType, Vector2Int)` helper toegevoegd naast `FootprintFor`
+- Per gebouwtype het juiste deur-exit tile:
+  - `Toolshed`: `(x, y-1)` — stap in -row richting (SE)
+  - `Mill`: `(x+1, y-1)` — stap +col -row (SE-hoek, Mill bij 18,15 → deur 19,14)
+  - overige (House, Farm, Dairy): `(x-1, y)` — stap in -col richting (SW)
+- Alle 4 road-aanroepen (ghost preview + plaatsing × 2 typen) vervangen door deze helper
+
+### Toolshed wegalignment fix
+- Was: `(gridPos.x + 1, gridPos.y - 1)` → plaatste eerste wegtile op verkeerde kolom
+- Gecorrigeerd naar `(gridPos.x, gridPos.y - 1)` — Toolshed bij 17,15 → eerste weg 17,14
+
+### Mill en Dairy krijgen nu wegen
+- Ghost road conditie uitgebreid: Mill en Dairy worden meegenomen in `BuildGhostRoad`-check
+- Plaatsing: `SpawnRoadToNearestRoad` nu ook gecalled voor `Mill`, `Farm` en `Dairy`
+
+### Dairy footprint
+- `FootprintFor`: `Farm` en `Dairy` nu expliciet `(3,3)` — vielen voorheen door naar `(2,2)` default
+- Nieuwe Dairy heeft nu zelfde 3×3-footprint als de bestaande
+
+---
+
+## Sessie 6 — 4 april 2026 (Mill/Dairy unlock, footprint helper, BFS wegen)
+
+### Building unlock systeem (nieuw)
+- `GameManager` heeft `MillUnlocked` en `DairyUnlocked` bool properties + `UnlockMill()` / `UnlockDairy()` methoden
+- `ConstructionSite.ActivateBuilding()`:
+  - Toolshed complete → `UnlockMill()`
+  - Mill complete → `MillAnimator` + `DropOffNode(Bakery)` toegevoegd aan gebouw + `UnlockDairy()`
+- `GridMapBuilder.BuildBuildings()`: scant layout bij startup — als Toolshed of Mill aanwezig → `UnlockMill()`; als Mill aanwezig → `UnlockDairy()` (zodat bestaande saves correct starten)
+- `UIManager.DrawBuildMenu()`: Mill-knop alleen getoond als `gm.MillUnlocked`, Dairy-knop alleen als `gm.DairyUnlocked`; `btnCount` dynamisch zodat status-label meeschuift
+
+### GameConfig
+- `costMill = 400` toegevoegd aan `GameConfig.cs` én `GameConfig.asset`
+- `costToolshed = 175` expliciet in `GameConfig.asset` gezet (was impliciet default)
+- Bug: `CostFor()` in `BuildManager` had geen case voor `Mill` en `Dairy` → viel terug op `return 999` → "not enough gold". Cases toegevoegd.
+
+### FootprintFor helper (BuildManager)
+- `FootprintFor(BuildingType)` helper toegevoegd: `ChickenCoop → (1,1)`, `Mill → (3,2)`, rest → `(2,2)`
+- Alle 6 hardcoded-`2`-plekken vervangen: ghost-grootte, snap-positie, grid-overlay, occupied-tile marking, `PlaceBuilding`, `IsValidPlacement`
+- `× 0.5f` scale-multiplier op ChickenCoop verwijderd uit `CreateGhost` en `PlaceBuilding` — was compensatie voor de oude 2×2 footprint, maar nu FootprintFor `(1,1)` teruggeeft is de sprite al correct geschaald
+
+### BFS wegpathfinding (ComputeRoadPath)
+- Oude greedy rechte-lijn walk vervangen door BFS
+- Passeer-logica: Road-tiles altijd passeerbaar; Grass-tiles passeerbaar tenzij in `_occupiedTiles`; alle andere types geblokkeerd
+- Ghost road preview: `BuildGhostRoad` geeft ghost-footprint-tiles door als `extraBlocked`-set aan `ComputeRoadPath` → weg loopt ook om het nog-te-plaatsen gebouw heen
+- `ComputeRoadPath` krijgt optionele `HashSet<Vector2Int> extraBlocked = null` parameter; echte plaatsing gebruikt dit niet (footprint is al in `_occupiedTiles`)
+- `flipY` per stap bepaald door richting: x-stap → `flipY=true` (NE-SW), y-stap → `flipY=false` (NW-SE)
+
+---
+
 ## Sessie 5 — 4 april 2026 (build mechanic + constructie-systeem)
 
 ### ConstructionSite.cs (nieuw)

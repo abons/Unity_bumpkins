@@ -5,7 +5,9 @@ Zie [DESIGN.md](DESIGN.md) voor core loops, data model en entities.
 
 **Status na 6 uur:** stap 1–3 klaar + polish animaties. Resterende tijd: ±2–4 uur.  
 **Update:** stap 4 + 5 grotendeels klaar. Baby/kind systeem gebouwd (bonus). Stap 10 (UI) is de resterende prioriteit.  
-**Update 2:** MVP COMPLEET ✅ — touch controls, freewill toggle, baby/kind systeem, OnGUI HUD, gras gap fix, APK build instructies klaar.
+**Update 2:** MVP COMPLEET ✅ — touch controls, freewill toggle, baby/kind systeem, OnGUI HUD, gras gap fix, APK build instructies klaar.  
+**Update 3:** Build mechanic uitgebreid — Mill + Dairy ontgrendelsysteem, constructie-pipeline voor Mill, BFS wegpathfinding rond obstakels.
+**Update 4:** Wegalignment gecorrigeerd — Toolshed/Mill deur-exit tiles aangepast, `DoorExit()` helper toegevoegd, Farm/Dairy krijgen nu ook ghost road preview en auto-weg bij plaatsing. Dairy footprint 3×3 expliciet.
 
 ---
 
@@ -153,12 +155,14 @@ Zie [DESIGN.md](DESIGN.md) voor core loops, data model en entities.
 - Speler spendeert `gold` om gebouwen te plaatsen op het iso-grid
 - Build mode: klik bouw-knop in UI → cursor toont ghost-preview → klik op geldig tile → bouw geplaatst
 
-### Bouwbare gebouwen (v1)
-| Gebouw      | Kosten | Levert                          |
-|-------------|--------|---------------------------------|
-| House       | 20g    | Spawn extra bumpkin (male of female, willekeurig) |
-| WheatField  | 15g    | Nieuwe harvest node (30 sec groeitijd) |
-| ChickenCoop | 25g    | Nieuwe kip + ei-productie       |
+### Bouwbare gebouwen (v1 → v2)
+| Gebouw      | Kosten | Levert                          | Ontgrendeld na |
+|-------------|--------|---------------------------------|----------------|
+| House       | 200g   | Spawn extra bumpkin             | altijd |
+| ChickenCoop | 100g   | Nieuwe kip + ei-productie       | altijd |
+| Toolshed    | 175g   | Productie-hub                   | altijd |
+| Mill        | 400g   | Wheat drop-off + deuranimatie   | Toolshed gebouwd |
+| Dairy       | 300g   | Milk drop-off                   | Mill gebouwd |
 
 ### Implementatie
 - [x] `BuildManager.cs` — singleton, houdt `inBuildMode` bij + gekozen gebouwtype
@@ -175,6 +179,13 @@ Zie [DESIGN.md](DESIGN.md) voor core loops, data model en entities.
 - [x] House placement → `BuildManager.SpawnBumpkin()` direct na plaatsing
 - [x] WheatField placement → instantieer `ProductionNode` (type Wheat, startState grown=false)
 - [x] ChickenCoop placement → instantieer `ChickenAnimator`
+- [x] Mill/Dairy ontgrendelsysteem — Mill zichtbaar na Toolshed gebouwd, Dairy na Mill gebouwd
+- [x] Mill placement → constructie-pipeline → `MillAnimator` + `DropOffNode(Bakery)` na voltooiing
+- [x] `FootprintFor(BuildingType)` helper in `BuildManager` — Mill 3×2, Farm/Dairy 3×3, ChickenCoop 1×1, rest 2×2
+- [x] BFS wegpathfinding — weg loopt om bestaande gebouwen heen ipv erdoorheen
+- [x] Ghost road preview weert ook ghost-gebouw-footprint als obstakel
+- [x] `DoorExit(BuildingType)` helper — correcte deur-exit tile per type (Toolshed SE, Mill SE-hoek, rest SW)
+- [x] Mill en Dairy krijgen ghost road preview + auto-weg bij plaatsing
 
 ### Validatieregels (simpel)
 - Alleen op `TileType.Grass` tiles

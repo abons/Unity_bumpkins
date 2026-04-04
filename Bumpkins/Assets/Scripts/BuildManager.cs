@@ -176,8 +176,10 @@ public class BuildManager : MonoBehaviour
                 : new Color(1f, 0f, 0f, 0.18f);
         }
 
-        // Ghost road preview für House/Toolshed
-        if (SelectedType == BuildingType.House || SelectedType == BuildingType.Toolshed)
+        // Ghost road preview für House/Toolshed/Mill/Farm/Dairy
+        if (SelectedType == BuildingType.House || SelectedType == BuildingType.Toolshed ||
+            SelectedType == BuildingType.Mill  || SelectedType == BuildingType.Farm ||
+            SelectedType == BuildingType.Dairy)
         {
             if (gridPos != _lastGhostGridPos)
             {
@@ -202,9 +204,7 @@ public class BuildManager : MonoBehaviour
 
     private void BuildGhostRoad(Vector2Int gridPos)
     {
-        Vector2Int from = SelectedType == BuildingType.House
-            ? new Vector2Int(gridPos.x - 1, gridPos.y)
-            : new Vector2Int(gridPos.x + 1, gridPos.y - 1);  // Toolshed SE
+        Vector2Int from = DoorExit(SelectedType, gridPos);
 
         // Build set of tiles occupied by the ghost building itself so BFS avoids them
         var (gw, gh) = FootprintFor(SelectedType);
@@ -429,16 +429,21 @@ public class BuildManager : MonoBehaviour
             var site = root.AddComponent<ConstructionSite>();
             site.buildingType = type;
 
-            // House/Toolshed: verbind met dichtstbijzijnde weg via deur-positie
+            // House/Toolshed/Mill/Farm: verbind met dichtstbijzijnde weg via deur-positie
             if (type == BuildingType.House)
             {
                 // Deur op SW → exit tile één stap in -col richting
-                SpawnRoadToNearestRoad(new Vector2Int(gridPos.x - 1, gridPos.y));
+                SpawnRoadToNearestRoad(DoorExit(type, gridPos));
             }
             else if (type == BuildingType.Toolshed)
             {
                 // Deur op SE → exit tile één stap in -row richting (rechtsonder)
-                SpawnRoadToNearestRoad(new Vector2Int(gridPos.x + 1, gridPos.y - 1));
+                SpawnRoadToNearestRoad(DoorExit(type, gridPos));
+            }
+            else if (type == BuildingType.Mill || type == BuildingType.Farm || type == BuildingType.Dairy)
+            {
+                // Deur op SW → exit tile één stap links
+                SpawnRoadToNearestRoad(DoorExit(type, gridPos));
             }
         }
 
@@ -621,7 +626,16 @@ public class BuildManager : MonoBehaviour
     {
         BuildingType.ChickenCoop => (1, 1),
         BuildingType.Mill        => (3, 2),
+        BuildingType.Farm        => (3, 3),
+        BuildingType.Dairy       => (3, 3),
         _                        => (2, 2),
+    };
+
+    private static Vector2Int DoorExit(BuildingType type, Vector2Int gridPos) => type switch
+    {
+        BuildingType.Toolshed => new Vector2Int(gridPos.x,     gridPos.y - 1), // SE: step -row
+        BuildingType.Mill     => new Vector2Int(gridPos.x + 1, gridPos.y - 1), // SE corner: +col -row
+        _                     => new Vector2Int(gridPos.x - 1, gridPos.y),     // SW: step -col
     };
 
     private int CostFor(BuildingType type)
