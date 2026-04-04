@@ -19,8 +19,9 @@ public class BumpkinAnimator : MonoBehaviour
     private Sprite _sprDead;
     private Sprite _sprSkeleton;
 
-    private string _lastState  = "";
-    private bool   _lastIsChild = false;
+    private string _lastState   = "";
+    private bool   _lastIsChild  = false;
+    private bool   _lastIsElder  = false;
 
     void Start()
     {
@@ -75,6 +76,17 @@ public class BumpkinAnimator : MonoBehaviour
             bool kid  = _bc.isChild;
             _sprIdle = Resources.Load<Sprite>($"Sprites/Units/{(kid ? (male ? "kidm" : "kidf") : (male ? "m_still" : "f_still"))}");
             _lastState = ""; // forceer state-update
+        }
+
+        // Herlaad idle sprite als bumpkin een elder wordt
+        if (_bc.isElder != _lastIsElder)
+        {
+            _lastIsElder = _bc.isElder;
+            if (_bc.isElder)
+            {
+                _sprIdle = Resources.Load<Sprite>($"Sprites/Units/{(_bc.IsMale ? "elderm" : "elderf")}");
+                _lastState = ""; // forceer state-update
+            }
         }
 
         string state = _bc.CurrentState;

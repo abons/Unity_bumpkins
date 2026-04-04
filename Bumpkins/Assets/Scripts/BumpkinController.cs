@@ -13,6 +13,7 @@ public class BumpkinController : MonoBehaviour
     public BumpkinType bumpkinType = BumpkinType.Male;
     [Tooltip("Kinderen mogen niet werken en zijn kleiner")]
     public bool isChild = false;
+    public bool isElder = false;
 
     [Header("Autonomie")]
     public bool freeWill = true;  // als false: bumpkin blijft idle
@@ -94,9 +95,59 @@ public class BumpkinController : MonoBehaviour
         SetStateRaw("WalkingToConstruction");
     }
 
+    void Start()
+    {
+        if (!isChild)
+            StartCoroutine(AgeToElder(60f));
+    }
+
+    private IEnumerator AgeToElder(float seconds)
+    {
+        yield return new WaitForSeconds(seconds);
+        if (!IsDead)
+        {
+            isElder = true;
+            // Release any work the bumpkin was doing
+            _targetNode?.Release();
+            _targetNode    = null;
+            _targetDropOff = null;
+            _targetSite    = null;
+            _moving        = false;
+            SetState("Idle");
+            Debug.Log($"[Bumpkin] {name} is een elder geworden!");
+            StartCoroutine(ElderDeathTimer(60f));
+        }
+    }
+
+    private IEnumerator ElderDeathTimer(float seconds)
+    {
+        yield return new WaitForSeconds(seconds);
+        if (!IsDead)
+            TakeDamage();
+    }
+
+    // How fast this bumpkin actually moves (half speed for elders)
+    private float EffectiveSpeed => isElder ? moveSpeed * 0.5f : moveSpeed;
+
+    private float _fleeCheckTimer;
+    private const float FleeCheckInterval = 0.5f;
+
     void Update()
     {
-        if (IsDead || !_moving) return;
+        if (IsDead) return;
+
+        // Elder flee logic — periodically check for nearby enemies
+        if (isElder)
+        {
+            _fleeCheckTimer -= Time.deltaTime;
+            if (_fleeCheckTimer <= 0f)
+            {
+                _fleeCheckTimer = FleeCheckInterval;
+                TryFlee();
+            }
+        }
+
+        if (!_moving) return;
 
         Vector2 pos  = transform.position;
         float   dist = Vector2.Distance(pos, _target);
@@ -104,12 +155,65 @@ public class BumpkinController : MonoBehaviour
         if (dist <= stopDistance)
         {
             _moving = false;
-            OnReachedTarget();
+            if (_currentState != "Fleeing")
+                OnReachedTarget();
             return;
         }
 
         Vector2 dir = (_target - pos).normalized;
-        transform.position = (Vector2)transform.position + dir * moveSpeed * Time.deltaTime;
+        transform.position = (Vector2)transform.position + dir * EffectiveSpeed * Time.deltaTime;
+    }
+
+    private void TryFlee()
+    {
+        // Find nearest enemy within 5 units
+        float   bestDist  = 5f;
+        Vector2 threatPos = Vector2.zero;
+        bool    found     = false;
+
+        foreach (var w in FindObjectsByType<WolfController>(FindObjectsSortMode.None))
+        {
+            float d = Vector2.Distance(transform.position, w.transform.position);
+            if (d < bestDist) { bestDist = d; threatPos = w.transform.position; found = true; }
+        }
+        foreach (var w in FindObjectsByType<WaspController>(FindObjectsSortMode.None))
+        {
+            float d = Vector2.Distance(transform.position, w.transform.position);
+            if (d < bestDist) { bestDist = d; threatPos = w.transform.position; found = true; }
+        }
+        foreach (var w in FindObjectsByType<BloodWaspController>(FindObjectsSortMode.None))
+        {
+            float d = Vector2.Distance(transform.position, w.transform.position);
+            if (d < bestDist) { bestDist = d; threatPos = w.transform.position; found = true; }
+        }
+        foreach (var w in FindObjectsByType<BatController>(FindObjectsSortMode.None))
+        {
+            float d = Vector2.Distance(transform.position, w.transform.position);
+            if (d < bestDist) { bestDist = d; threatPos = w.transform.position; found = true; }
+        }
+        foreach (var w in FindObjectsByType<OgreController>(FindObjectsSortMode.None))
+        {
+            float d = Vector2.Distance(transform.position, w.transform.position);
+            if (d < bestDist) { bestDist = d; threatPos = w.transform.position; found = true; }
+        }
+        foreach (var w in FindObjectsByType<ZombieController>(FindObjectsSortMode.None))
+        {
+            float d = Vector2.Distance(transform.position, w.transform.position);
+            if (d < bestDist) { bestDist = d; threatPos = w.transform.position; found = true; }
+        }
+        foreach (var w in FindObjectsByType<GiantController>(FindObjectsSortMode.None))
+        {
+            float d = Vector2.Distance(transform.position, w.transform.position);
+            if (d < bestDist) { bestDist = d; threatPos = w.transform.position; found = true; }
+        }
+
+        if (!found) return;
+
+        // Run away: move in opposite direction, 6 units
+        Vector2 away = ((Vector2)transform.position - threatPos).normalized;
+        _target  = (Vector2)transform.position + away * 6f;
+        _moving  = true;
+        SetStateRaw("Fleeing");
     }
 
     private void OnReachedTarget()
@@ -279,6 +383,7 @@ public class BumpkinController : MonoBehaviour
     private bool TryFindWork()
     {
         if (isChild)   return false;
+        if (isElder)   return false;
         if (!freeWill) return false;
 
         // Check construction sites (males only)

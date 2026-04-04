@@ -2,6 +2,29 @@
 
 ---
 
+## Sessie 10 — 4 april 2026 (extra enemies + elder systeem)
+
+### Nieuwe enemy controllers
+- `BatController.cs` — snel vliegend, alleen bumpkins; sprites: bat/batatta/deadbat; chaseSpeed 5f, sting 1s
+- `OgreController.cs` — traag zware aanvaller, bumpkins + koeien; sprites: ogrestil/ogrewalk/ogreatta/ogredead; aanval 3s
+- `ZombieController.cs` — trage shambler, alleen bumpkins; sprites: zombie/zombatta/zombdead; aanval 2.5s
+- `GiantController.cs` — grootste enemy, bumpkins + koeien; sprites: gianstil/giant/gianatt/giandead; aanval 3.5s
+- `BloodWaspController.cs` — elite wasp, alleen bumpkins; sprites: bloodwsp/bloodead; huntRadius 6f, sting 0.8s
+- Alle 5 toegevoegd aan `GridMapBuilder` met eigen spawn tile en `SpawnX()` methode
+- Sprite files verplaatst naar `Resources/Sprites/Animals/`
+
+### Elder systeem (BumpkinController + BumpkinAnimator)
+- Na 60s wordt volwassen bumpkin een `elder` (`isElder = true`)
+- Bij transitie: huidige node/dropoff/construction vrijgegeven, `SetState("Idle")`
+- `EffectiveSpeed = moveSpeed * 0.5f` — elder beweegt half zo snel
+- `TryFindWork()` returnt false voor elders — werken niet meer
+- `TryFlee()` — elke 0.5s gecheckt; detecteert alle enemy types binnen 5 units; rent 6 units weg in tegengestelde richting; state `"Fleeing"`
+- `ElderDeathTimer(60f)` — na 60s als elder roept `TakeDamage()` aan → bestaande Dying→DeadLying→DeadSkeleton sequence
+- `BumpkinAnimator` — detecteert `isElder` vlag wijziging, herlaadt `_sprIdle` naar `elderm`/`elderf`
+- Sprite files `elderm.png` + `elderf.png` verplaatst naar `Resources/Sprites/Units/`
+
+---
+
 ## Sessie 9 — 4 april 2026 (wasp enemy)
 
 ### WaspController.cs (nieuw)
