@@ -8,6 +8,7 @@ Zie [DESIGN.md](DESIGN.md) voor core loops, data model en entities.
 **Update 2:** MVP COMPLEET ✅ — touch controls, freewill toggle, baby/kind systeem, OnGUI HUD, gras gap fix, APK build instructies klaar.  
 **Update 3:** Build mechanic uitgebreid — Mill + Dairy ontgrendelsysteem, constructie-pipeline voor Mill, BFS wegpathfinding rond obstakels.
 **Update 4:** Wegalignment gecorrigeerd — Toolshed/Mill deur-exit tiles aangepast, `DoorExit()` helper toegevoegd, Farm/Dairy krijgen nu ook ghost road preview en auto-weg bij plaatsing. Dairy footprint 3×3 expliciet.
+**Update 5:** Wolf enemy basisimplementatie klaar — `WolfController.cs` (Roaming/Hunting/Attacking/Dead), bumpkin death sequence met `d_male`/skeleton sprites, `IsDead` guard, selection clearing bij dood.
 
 ---
 
@@ -206,10 +207,9 @@ Zie [DESIGN.md](DESIGN.md) voor core loops, data model en entities.
 
 ### Concept
 - Wolf spawnt periodiek vanaf de kaartrand
-- Zoekt het dichtstbijzijnde doelwit: bumpkin of dier (koe/kip)
+- Zoekt het dichtstbijzijnde doelwit: bumpkin of dier (koe)
 - Valt aan → doodt doelwit na een paar seconden
-- Speler kan wolf wegsturen door een bumpkin erop te sturen (klik wolf → bumpkin gaat erop af)
-- Bumpkin "vecht" de wolf weg → wolf vlucht of sterft
+- Bumpkin "vecht" de wolf → wolf of bumpkin sterft
 
 ### `WolfController.cs` — state machine
 ```
@@ -222,22 +222,21 @@ Spawning → Roaming → Hunting → Attacking → [Fleeing | Dead]
 - **Dead**: `wolfdead` sprite, 1 sec delay → destroy
 
 ### Implementatie
-- [ ] `WolfController.cs` — `MonoBehaviour`, state machine bovenstaand
-  - `target: Transform` — huidig doelwit (bumpkin of dier)
-  - `FindTarget()` — zoek dichtste bumpkin of kip/koe binnen `huntRadius`
+- [x] `WolfController.cs` — `MonoBehaviour`, state machine: Roaming → Hunting → Attacking → Dead
+  - `FindTarget()` — zoek dichtste bumpkin of koe binnen `huntRadius = 3f`
   - `moveSpeed = 2f` (roaming), `chaseSpeed = 3.5f` (hunting)
-  - Sprite-swap op state wissel (`SpriteRenderer`)
-  - Flip `localScale.x` op bewegingsrichting
-- [ ] `WolfSpawner.cs` — spawnt wolf elke 60 sec (configurable in inspector)
-  - Kies willekeurige randtile (top/bottom/left/right edge van 24×18 grid)
-  - Instantieer wolf-prefab op iso-positie van die tile
-- [ ] **Aanval op bumpkin**: `BumpkinController.TakeDamage()` → bumpkin wordt 3 sec gestuurd (`Dying` state) → destroy + verwijder uit `GameManager.bumpkins`
-- [ ] **Aanval op kip/koe**: destroy `ChickenAnimator`/koe-object + verwijder uit productienode-lijst
-- [ ] **Speler klik op wolf**: `WolfController` heeft `BoxCollider2D` + click-detectie (zelfde patroon als gebouwen in `ClickHandler`)
-  - Geselecteerde bumpkin → `bumpkin.AssignTarget(wolf.transform)` (nieuw overload)
-  - Bumpkin bereikt wolf → `wolf.Flee()` of `wolf.TakeDamage()`
-- [ ] **Wolf health** (optioneel simpel): wolf heeft 1 HP, 1 hit = Fleeing. Of 3 HP voor meer spanning.
-- [ ] **UI feedback** (uitbreiden `UIManager`): korte waarschuwingstekst "Wolf nadert!" als wolf spawnt
+  - Sprite-swap op state: wolfstil/wolf/wolfatta/wolfdead
+  - `flipX = dir.x > 0f` (sprite faces SW by default)
+  - Sort order: `-y / 0.256 + 50` (altijd boven terrain)
+- [x] 1 wolf gespawnd via `GridMapBuilder.SpawnWolf()` op tile (1,8)
+- [x] `BumpkinController.TakeDamage()` → death sequence: Dying → DeadLying → DeadSkeleton
+- [x] `IsDead` property — blokkeert `MoveTo()`, `Update()` beweging en click-selectie
+- [x] `SelectionManager.DeselectIfSelected()` — deselecteert bij dood
+- [x] **Aanval op koe**: `Destroy(target.gameObject)`
+- [ ] `WolfSpawner.cs` — spawnt wolf elke 60 sec vanaf kaartrand
+- [ ] **Speler klik op wolf**: geselecteerde bumpkin jaagt wolf weg
+- [ ] **Wolf health / Fleeing**: wolf vlucht na hit door bumpkin
+- [ ] **UI feedback**: "Wolf nadert!" waarschuwingstekst
 
 ### Sprite mapping (Resources/Sprites/Animals/)
 | State     | Sprite                    |
@@ -280,8 +279,9 @@ Spawning → Roaming → Hunting → Attacking → [Fleeing | Dead]
 - [x] Milk → farm (drop-off)
 - [x] Kip produceert ei + idle bumpkin haalt op
 - [x] UI toont resources  ✅ **MVP COMPLEET**
-- [ ] Build mechanic: House / WheatField / ChickenCoop bouwen voor gold
-- [ ] Wolf enemy: spawnt, jaagt, valt aan — bumpkin kan hem verjagen
+- [x] Build mechanic: House / WheatField / ChickenCoop / Mill / Dairy bouwen voor gold ✅
+- [x] Wolf enemy: spawnt, roamt, jaagt, valt aan — bumpkin death sequence compleet ✅
+- [ ] Wolf spawner (periodiek vanaf kaartrand)
 - [ ] *(stretch)* Bread/milk/egg kopen voor gold
 - [ ] *(stretch)* Happiness meter
 - [ ] *(stretch)* Guard bumpkin / verdedigingstoren

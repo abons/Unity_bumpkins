@@ -2,6 +2,54 @@
 
 ---
 
+## Sessie 8 — 4 april 2026 (wolf enemy + bumpkin death sequence)
+
+### WolfController.cs (nieuw)
+- State machine: Roaming → Hunting → Attacking → Dead
+- **Roaming**: beweegt naar willekeurige posities binnen iso-world bounds; `wolfstil` bij wachten, `wolf` bij bewegen
+- **Hunting**: detecteert dichtstbijzijnde `BumpkinController` of `CowAnimator` binnen `huntRadius = 3f`; `chaseSpeed = 3.5f`
+- **Attacking**: toont `wolfatta`, wacht 2s, doodt doelwit — `TakeDamage()` op bumpkin, `Destroy` op koe; wolf gaat daarna naar Dead
+- **Dead**: `wolfdead` 3s zichtbaar, daarna `Destroy(gameObject)`
+- Flip: `flipX = dir.x > 0f` — sprite kijkt SW van nature
+- Sort order: `Mathf.RoundToInt(-y / 0.256f) + 50` — altijd boven terrain (+50 offset)
+- `BoxCollider2D` toegevoegd voor toekomstige click-targeting
+
+### Wolf spawning
+- `GridMapBuilder.SpawnWolf()` gecalled vanuit `Start()` — 1 wolf op tile (1,8)
+- Schaal `3f` uniform, sort order 10 bij spawn (daarna dynamisch per frame)
+
+### Wolf sprites naar Resources
+- Gekopieerd van `Sprites/Animals/` naar `Resources/Sprites/Animals/`: wolf, wolfstil, wolfatta, wolfdead
+- Originelen verwijderd
+
+### BumpkinController — death sequence
+- `TakeDamage()`: stopt coroutines, release node, `_moving = false`, zet `"Dying"`, roept `DeselectIfSelected`
+- `DieCoroutine()`:
+  1. 1s `"Dying"` → falling sprite (`d_male`/`d_fema`/`d_kidm`/`d_kidf`)
+  2. 10s `"DeadLying"` → idle sprite rotated 90° Z (horizontaal op gras)
+  3. `"DeadSkeleton"` → `skeleton.png`, blijft oneindig (burial mechanic later)
+- `public bool IsDead` — bewaking in `MoveTo()`, `Update()`, `ClickHandler`
+- `SelectionManager.DeselectIfSelected(BumpkinController)` toegevoegd
+
+### BumpkinAnimator — nieuwe states
+- `_sprDead` + `_sprSkeleton` toegevoegd
+- `"Dying"` → d_male/d_fema/d_kidm/d_kidf
+- `"DeadLying"` → idle sprite + `_visual.localRotation = Quaternion.Euler(0,0,90)`
+- `"DeadSkeleton"` → skeleton sprite
+- `flipX`, `flipY` en `_visual.localRotation` worden gereset op elke state-wisseling
+
+### Death sprites naar Resources
+- Gekopieerd: `d_male`, `d_fema`, `d_kidm`, `d_kidf`, `skeleton` → `Resources/Sprites/Units/`
+- Originelen verwijderd uit `Sprites/Units/` en `Sprites/Animals/`
+
+### ClickHandler
+- Dead bumpkin: klik selecteert niet meer (`if (!bumpkin.IsDead)`)
+
+### Agent
+- `.github/agents/unit-animation.agent.md` aangemaakt — Unit Animation agent met alle patterns gedocumenteerd
+
+---
+
 ## Sessie 7 — 4 april 2026 (wegalignment fixes Mill/Dairy)
 
 ### DoorExit helper (BuildManager)
