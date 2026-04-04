@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: b9001ea24efe63941a5fb93ad6957339
+guid: 47a284e7ab423284d97cd5cdf34cc078
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -8794679895009187368
-    second: d_kidm_0
+      213: -5866597864006298814
+    second: waspdead_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -113,13 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: d_kidm_0
+      name: waspdead_0
       rect:
         serializedVersion: 2
-        x: 24
-        y: 3
-        width: 15
-        height: 24
+        x: 0
+        y: 0
+        width: 34
+        height: 22
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 8d925b05b3503f580800000000000000
-      internalID: -8794679895009187368
+      spriteID: 243d6d34358a59ea0800000000000000
+      internalID: -5866597864006298814
       vertices: []
       indices: 
       edges: []
@@ -148,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      d_kidm_0: -8794679895009187368
+      waspdead_0: -5866597864006298814
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

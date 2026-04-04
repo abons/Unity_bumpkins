@@ -36,6 +36,27 @@ public class GridMapBuilder : MonoBehaviour
         BuildTerrain();
         BuildBuildings();
         SpawnWolf();
+        SpawnWasp();
+    }
+
+    private void SpawnWasp()
+    {
+        var waspGo = new GameObject("Wasp");
+        waspGo.transform.position = layout.TileToWorld(3, 2);
+
+        var sr = waspGo.AddComponent<SpriteRenderer>();
+        var sp = Resources.Load<Sprite>("Sprites/Animals/wasp");
+        if (sp != null)
+        {
+            sr.sprite = sp;
+            float scale = 3f;
+            waspGo.transform.localScale = new Vector3(scale, scale, 1f);
+        }
+        sr.sortingOrder = 10;
+
+        waspGo.AddComponent<BoxCollider2D>();
+        waspGo.AddComponent<WaspController>();
+        Debug.Log("[Wasp] Wasp gespawnd op de kaart");
     }
 
     private void SpawnWolf()
