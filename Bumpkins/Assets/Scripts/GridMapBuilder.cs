@@ -35,6 +35,27 @@ public class GridMapBuilder : MonoBehaviour
         if (layout == null) { Debug.LogError("[GridMapBuilder] No layout assigned!"); return; }
         BuildTerrain();
         BuildBuildings();
+        SpawnWolf();
+    }
+
+    private void SpawnWolf()
+    {
+        var wolfGo = new GameObject("Wolf");
+        wolfGo.transform.position = layout.TileToWorld(1, 8);
+
+        var sr = wolfGo.AddComponent<SpriteRenderer>();
+        var sp = Resources.Load<Sprite>("Sprites/Animals/wolfstil");
+        if (sp != null)
+        {
+            sr.sprite = sp;
+            float scale = 3f;
+            wolfGo.transform.localScale = new Vector3(scale, scale, 1f);
+        }
+        sr.sortingOrder = 10;
+
+        wolfGo.AddComponent<BoxCollider2D>();
+        wolfGo.AddComponent<WolfController>();
+        Debug.Log("[Wolf] Wolf gespawnd op de kaart");
     }
 
     // ---- Terrain ----

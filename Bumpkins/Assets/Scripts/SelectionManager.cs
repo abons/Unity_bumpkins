@@ -26,4 +26,10 @@ public class SelectionManager : MonoBehaviour
     {
         SelectedBumpkin = null;
     }
+
+    public void DeselectIfSelected(BumpkinController b)
+    {
+        if (SelectedBumpkin == b)
+            SelectedBumpkin = null;
+    }
 }

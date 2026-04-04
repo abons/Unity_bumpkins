@@ -16,6 +16,8 @@ public class BumpkinAnimator : MonoBehaviour
     private Sprite _sprMilk;
     private Sprite _sprCarry;
     private Sprite _sprCarryMilk;
+    private Sprite _sprDead;
+    private Sprite _sprSkeleton;
 
     private string _lastState  = "";
     private bool   _lastIsChild = false;
@@ -55,6 +57,8 @@ public class BumpkinAnimator : MonoBehaviour
         _sprMilk      = Resources.Load<Sprite>("Sprites/Units/milking");
         _sprCarry     = Resources.Load<Sprite>($"Sprites/Units/{(male ? "m_sack"    : "f_sack")}");
         _sprCarryMilk = Resources.Load<Sprite>("Sprites/Units/f_milk");
+        _sprDead      = Resources.Load<Sprite>($"Sprites/Units/{(kid ? (male ? "d_kidm" : "d_kidf") : (male ? "d_male" : "d_fema"))}");
+        _sprSkeleton  = Resources.Load<Sprite>("Sprites/Units/skeleton");
 
         SetSprite(_sprIdle);
     }
@@ -78,6 +82,8 @@ public class BumpkinAnimator : MonoBehaviour
 
         _lastState = state;
         _sr.flipX  = false;
+        _sr.flipY  = false;
+        _visual.localRotation = Quaternion.identity;
 
         switch (state)
         {
@@ -110,6 +116,19 @@ public class BumpkinAnimator : MonoBehaviour
                 if (_bc.CarriedMilk > 0)        SetSprite(_sprCarryMilk);
                 else if (_bc.CarriedWheat > 0)  SetSprite(_sprCarry);
                 else                            SetSprite(_sprIdle);
+                break;
+
+            case "Dying":
+                SetSprite(_sprDead);
+                break;
+
+            case "DeadLying":
+                SetSprite(_sprIdle);
+                _visual.localRotation = Quaternion.Euler(0f, 0f, 90f);
+                break;
+
+            case "DeadSkeleton":
+                SetSprite(_sprSkeleton);
                 break;
 
             default:

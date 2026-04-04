@@ -68,7 +68,8 @@ public class ClickHandler : MonoBehaviour
         var bumpkin = go.GetComponent<BumpkinController>();
         if (bumpkin != null)
         {
-            SelectionManager.Instance?.Select(bumpkin);
+            if (!bumpkin.IsDead)
+                SelectionManager.Instance?.Select(bumpkin);
             return;
         }
 

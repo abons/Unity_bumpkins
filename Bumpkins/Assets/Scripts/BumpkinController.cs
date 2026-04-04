@@ -42,9 +42,12 @@ public class BumpkinController : MonoBehaviour
     public int CarriedWheat { get; private set; }
     public int CarriedMilk  { get; private set; }
 
+    public bool IsDead => _currentState == "Dying" || _currentState == "DeadLying" || _currentState == "DeadSkeleton";
+
     // ---- Called by click handler on ground ----
     public void MoveTo(Vector2 worldPos)
     {
+        if (IsDead) return;
         // Vrijgeven van eventueel gereserveerde node
         _targetNode?.Release();
         _target        = worldPos;
@@ -93,7 +96,7 @@ public class BumpkinController : MonoBehaviour
 
     void Update()
     {
-        if (!_moving) return;
+        if (IsDead || !_moving) return;
 
         Vector2 pos  = transform.position;
         float   dist = Vector2.Distance(pos, _target);
@@ -230,6 +233,25 @@ public class BumpkinController : MonoBehaviour
             site.DeliverWork();
         _targetSite = null;
         SetState("Idle");
+    }
+
+    // ---- Damage ----
+    public void TakeDamage()
+    {
+        StopAllCoroutines();
+        _targetNode?.Release();
+        _moving = false;
+        SetStateRaw("Dying");
+        SelectionManager.Instance?.DeselectIfSelected(this);
+        StartCoroutine(DieCoroutine());
+    }
+
+    private IEnumerator DieCoroutine()
+    {
+        yield return new WaitForSeconds(1f);   // d_male falling
+        SetStateRaw("DeadLying");               // m_still rotated
+        yield return new WaitForSeconds(10f);
+        SetStateRaw("DeadSkeleton");            // stays until buried
     }
 
     // ---- Resource carrying ----
