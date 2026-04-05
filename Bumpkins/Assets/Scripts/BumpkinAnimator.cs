@@ -19,9 +19,26 @@ public class BumpkinAnimator : MonoBehaviour
     private Sprite _sprDead;
     private Sprite _sprSkeleton;
 
+    // Walk animation
+    private Sprite[] _walkSprites;
+    private int      _walkFrame;
+    private float    _walkTimer;
+
+    [Header("Walk Animation")]
+    [SerializeField] private int _walkFps = 8;
+
     private string _lastState   = "";
     private bool   _lastIsChild  = false;
     private bool   _lastIsElder  = false;
+
+    [Header("Idle Facing")]
+    [SerializeField] private float _idleFacingIntervalMin = 3f;
+    [SerializeField] private float _idleFacingIntervalMax = 7f;
+
+    // Directions cycled during Idle: SE (default) then SW (flipX)
+    private static readonly bool[] s_idleFlipX = { false, true };
+    private int   _idleDirIndex;
+    private float _idleFacingTimer;
 
     void Start()
     {
@@ -60,6 +77,7 @@ public class BumpkinAnimator : MonoBehaviour
         _sprCarryMilk = Resources.Load<Sprite>("Sprites/Units/f_milk");
         _sprDead      = Resources.Load<Sprite>($"Sprites/Units/{(kid ? (male ? "d_kidm" : "d_kidf") : (male ? "d_male" : "d_fema"))}");
         _sprSkeleton  = Resources.Load<Sprite>("Sprites/Units/skeleton");
+        _walkSprites  = Resources.LoadAll<Sprite>($"Sprites/Units/{(male ? "villager" : "woman")}");
 
         SetSprite(_sprIdle);
     }
@@ -89,13 +107,56 @@ public class BumpkinAnimator : MonoBehaviour
             }
         }
 
-        string state = _bc.CurrentState;
-        if (state == _lastState) return;
+        string state        = _bc.CurrentState;
+        bool   stateChanged  = state != _lastState;
 
-        _lastState = state;
-        _sr.flipX  = false;
-        _sr.flipY  = false;
-        _visual.localRotation = Quaternion.identity;
+        if (stateChanged)
+        {
+            _lastState = state;
+            _sr.flipX  = false;
+            _sr.flipY  = false;
+            _visual.localRotation = Quaternion.identity;
+
+            if (state == "Idle")
+            {
+                _idleDirIndex    = 0;
+                _idleFacingTimer = UnityEngine.Random.Range(_idleFacingIntervalMin, _idleFacingIntervalMax);
+            }
+
+            if (IsWalkingState(state))
+            {
+                _walkFrame = 0;
+                _walkTimer = 0f;
+            }
+        }
+
+        // Per-frame idle direction timer — runs independently of state changes
+        if (state == "Idle")
+        {
+            _idleFacingTimer -= Time.deltaTime;
+            if (_idleFacingTimer <= 0f)
+            {
+                _idleFacingTimer = UnityEngine.Random.Range(_idleFacingIntervalMin, _idleFacingIntervalMax);
+                _idleDirIndex    = (_idleDirIndex + 1) % s_idleFlipX.Length;
+                _sr.flipX        = s_idleFlipX[_idleDirIndex];
+            }
+        }
+
+        // Per-frame walk animation — runs every frame while moving
+        if (IsWalkingState(state) && _walkSprites != null && _walkSprites.Length > 0)
+        {
+            _sr.flipX = _bc.MoveDirection.x > 0f;
+            _walkTimer += Time.deltaTime;
+            float frameDuration = 1f / Mathf.Max(1, _walkFps);
+            if (_walkTimer >= frameDuration)
+            {
+                _walkTimer -= frameDuration;
+                _walkFrame  = (_walkFrame + 1) % _walkSprites.Length;
+                SetSprite(_walkSprites[_walkFrame]);
+            }
+        }
+
+        if (!stateChanged) return;
 
         switch (state)
         {
@@ -124,6 +185,21 @@ public class BumpkinAnimator : MonoBehaviour
                 SetSprite(_sprIdle);
                 break;
 
+            case "Walking":
+            case "WalkingToNode":
+            case "WalkingToConstruction":
+            case "WalkingToCampfire":
+            case "WalkingToBuilding":
+            case "WalkingToEgg":
+            case "WalkingToMakeBaby":
+            case "WalkingToMakeBabyFemale":
+            case "Fleeing":
+                if (_walkSprites != null && _walkSprites.Length > 0)
+                    SetSprite(_walkSprites[0]);
+                else
+                    SetSprite(_sprIdle);
+                break;
+
             case "WalkingToDropOff":
                 if (_bc.CarriedMilk > 0)        SetSprite(_sprCarryMilk);
                 else if (_bc.CarriedWheat > 0)  SetSprite(_sprCarry);
@@ -148,6 +224,11 @@ public class BumpkinAnimator : MonoBehaviour
                 break;
         }
     }
+
+    private static bool IsWalkingState(string s) =>
+        s == "Walking" || s == "WalkingToNode" || s == "WalkingToConstruction" || s == "Fleeing" ||
+        s == "WalkingToCampfire" || s == "WalkingToBuilding" || s == "WalkingToEgg" ||
+        s == "WalkingToMakeBaby" || s == "WalkingToMakeBabyFemale";
 
     private void SetSprite(Sprite sp)
     {

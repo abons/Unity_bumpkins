@@ -626,6 +626,7 @@ public class BuildManager : MonoBehaviour
     private static (int w, int h) FootprintFor(BuildingType type) => type switch
     {
         BuildingType.ChickenCoop => (1, 1),
+        BuildingType.Campfire    => (1, 1),
         BuildingType.House       => (3, 3),
         BuildingType.Toolshed    => (3, 3),
         BuildingType.Mill        => (4, 3),
@@ -633,6 +634,17 @@ public class BuildManager : MonoBehaviour
         BuildingType.Dairy       => (3, 3),
         _                        => (2, 2),
     };
+
+    /// <summary>Returns true if the given tile is occupied (non-grass terrain or building footprint).</summary>
+    public bool IsTileOccupied(Vector2Int tile) => _occupiedTiles.Contains(tile);
+
+    /// <summary>World-space center of a tile at (col, row).</summary>
+    public Vector2 TileToWorld(Vector2Int tile)
+    {
+        if (_layout == null) return Vector2.zero;
+        var v = _layout.TileToWorld(tile.x, tile.y);
+        return new Vector2(v.x, v.y);
+    }
 
     private static Vector2Int DoorExit(BuildingType type, Vector2Int gridPos) => type switch
     {

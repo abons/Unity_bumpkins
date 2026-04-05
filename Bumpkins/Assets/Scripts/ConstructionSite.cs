@@ -210,16 +210,12 @@ public class ConstructionSite : MonoBehaviour
             case BuildingType.Dairy: w = 3; h = 3; break;
         }
 
-        // Fractional iso world position from grid coords
-        Vector3 CellWorld(float cx, float cy) =>
-            new Vector3((cx - cy) * layout.isoHalfW, (cx + cy) * layout.isoHalfH, -0.05f);
-
-        // Fixed sort order: +3 over terrain origin ensures cells always render above
-        // the building sprite (bSort = -(col+row)+1) regardless of cell position inside footprint.
-        int cellSort = -(col + row) + 3;
-
-        void Spawn(Vector3 worldPos, WorkCell.CellKind kind)
+        // Each workcell sits on a specific integer tile (c, r) within the footprint.
+        // World position = centre of that iso tile; sort order is per-tile so cells
+        // render above their own terrain tile (+1) and above the building sprite (+2).
+        void Spawn(int c, int r, WorkCell.CellKind kind)
         {
+            var worldPos = new Vector3((c - r) * layout.isoHalfW, (c + r) * layout.isoHalfH, -0.05f);
             var go   = new GameObject($"WorkCell_{_workCells.Count}");
             go.transform.SetParent(transform.parent);
             go.transform.position = worldPos;
@@ -228,22 +224,30 @@ public class ConstructionSite : MonoBehaviour
             Sprite active = kind == WorkCell.CellKind.Corner ? _vrockSprite  : _vsawSprite;
             Sprite done   = kind == WorkCell.CellKind.Corner ? _bricksSprite : _planksSprite;
             var cellSize  = new Vector2(layout.isoHalfW * 2f, layout.isoHalfH * 2f);
-            cell.Init(kind, idle, active, done, cellSort, cellSize);
+            cell.Init(kind, idle, active, done, -(c + r) + 2, cellSize);
             _workCells.Add(cell);
         }
 
-        // 4 corners — inside the footprint boundary tiles
-        Spawn(CellWorld(col,         row        ), WorkCell.CellKind.Corner);
-        Spawn(CellWorld(col + w - 1, row        ), WorkCell.CellKind.Corner);
-        Spawn(CellWorld(col + w - 1, row + h - 1), WorkCell.CellKind.Corner);
-        Spawn(CellWorld(col,         row + h - 1), WorkCell.CellKind.Corner);
+        // 4 corners — one per corner tile of the footprint (always integer coords)
+        Spawn(col,         row,         WorkCell.CellKind.Corner);
+        Spawn(col + w - 1, row,         WorkCell.CellKind.Corner);
+        Spawn(col + w - 1, row + h - 1, WorkCell.CellKind.Corner);
+        Spawn(col,         row + h - 1, WorkCell.CellKind.Corner);
 
-        // 3 side midpoints (NW / NE / SE) — SW = door side, omitted
-        float wMid = col + (w - 1) * 0.5f;
-        float hMid = row + (h - 1) * 0.5f;
-        Spawn(CellWorld(wMid,        row        ), WorkCell.CellKind.Side);  // NW face
-        Spawn(CellWorld(col + w - 1, hMid       ), WorkCell.CellKind.Side);  // NE face
-        Spawn(CellWorld(wMid,        row + h - 1), WorkCell.CellKind.Side);  // SE face
+        // Side midpoints: only when the dimension is ≥ 3 so the centre column/row
+        // is an integer tile coordinate.  For w=2 or h=2 the midpoint would fall
+        // between two tiles (fractional coord), so no side cell is added there.
+        if (w >= 3)
+        {
+            int cMid = col + (w - 1) / 2;
+            Spawn(cMid, row,         WorkCell.CellKind.Side);  // NW face mid
+            Spawn(cMid, row + h - 1, WorkCell.CellKind.Side);  // SE face mid
+        }
+        if (h >= 3)
+        {
+            int rMid = row + (h - 1) / 2;
+            Spawn(col + w - 1, rMid, WorkCell.CellKind.Side);  // NE face mid
+        }
     }
 
     // ---- Auto-assign ----

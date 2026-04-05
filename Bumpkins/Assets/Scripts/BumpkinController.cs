@@ -39,6 +39,7 @@ public class BumpkinController : MonoBehaviour
     public bool IsFemale => bumpkinType == BumpkinType.Female;
     public string CurrentState => _currentState;
     public ProductionNode CurrentNode => _targetNode;
+    public Vector2 MoveDirection { get; private set; }
 
     // Carried resources
     public int CarriedWheat { get; private set; }
@@ -164,6 +165,7 @@ public class BumpkinController : MonoBehaviour
         }
 
         Vector2 dir = (_target - pos).normalized;
+        MoveDirection = dir;
         transform.position = (Vector2)transform.position + dir * EffectiveSpeed * Time.deltaTime;
     }
 
@@ -449,13 +451,32 @@ public class BumpkinController : MonoBehaviour
                 StartCoroutine(WaitThenIdle(Random.Range(3f, 7f)));
                 break;
 
-            case 1: // Loop naar het kampvuur
+            case 1: // Loop naar het kampvuur — stop op aangrenzende tegel, niet op het vuur
                 var camp = FindFirstObjectByType<CampfireAnimator>();
-                if (camp != null)
+                if (camp != null && BuildManager.Instance != null)
                 {
-                    _target = (Vector2)camp.transform.position + new Vector2(Random.Range(-0.4f, 0.4f), -0.35f);
-                    _moving = true;
-                    SetStateRaw("WalkingToCampfire");
+                    var campTile = BuildManager.Instance.WorldToTile(camp.transform.position);
+                    Vector2 bumpkinPos2 = transform.position;
+                    Vector2 bestAdj = Vector2.zero;
+                    float bestAdjDist = float.MaxValue;
+                    bool adjFound = false;
+                    for (int dc = -1; dc <= 1; dc++)
+                    for (int dr = -1; dr <= 1; dr++)
+                    {
+                        if (dc == 0 && dr == 0) continue; // sla campfire-tegel zelf over
+                        var neighbor = new Vector2Int(campTile.x + dc, campTile.y + dr);
+                        if (BuildManager.Instance.IsTileOccupied(neighbor)) continue;
+                        Vector2 worldPos = BuildManager.Instance.TileToWorld(neighbor);
+                        float d = Vector2.Distance(bumpkinPos2, worldPos);
+                        if (d < bestAdjDist) { bestAdjDist = d; bestAdj = worldPos; adjFound = true; }
+                    }
+                    if (adjFound)
+                    {
+                        _target = bestAdj;
+                        _moving = true;
+                        SetStateRaw("WalkingToCampfire");
+                    }
+                    else goto case 0;
                 }
                 else goto case 0;
                 break;
