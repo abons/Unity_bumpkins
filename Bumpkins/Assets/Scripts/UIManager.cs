@@ -7,6 +7,11 @@ public class UIManager : MonoBehaviour
 {
     public static UIManager Instance { get; private set; }
 
+    [Header("Maps")]
+    [Tooltip("All available map layouts. Shown as buttons at the top-center.")]
+    public MapLayoutData[] maps;
+    private int _currentMapIndex = 0;
+
     private GUIStyle _style;
     private GUIStyle _btnStyle;
 
@@ -49,6 +54,9 @@ public class UIManager : MonoBehaviour
         // ---- Build menu ----
         overGUI |= DrawBuildMenu(gm);
 
+        // ---- Map switch buttons ----
+        overGUI |= DrawMapButtons();
+
         var sel = SelectionManager.Instance?.SelectedBumpkin;
         if (sel == null) { IsPointerOverGUI = overGUI; return; }
 
@@ -68,6 +76,37 @@ public class UIManager : MonoBehaviour
             sel.freeWill = !sel.freeWill;
 
         IsPointerOverGUI = overGUI;
+    }
+
+    private bool DrawMapButtons()
+    {
+        if (maps == null || maps.Length <= 1) return false;
+        var builder = FindFirstObjectByType<GridMapBuilder>();
+        if (builder == null) return false;
+
+        if (_btnStyle == null) BuildBtnStyle(true);
+        bool anyOver = false;
+        int bw = 140, bh = 30, gap = 4;
+        int x = (int)(RefWidth / 2f) - (maps.Length * (bw + gap)) / 2;
+        int y = 10;
+
+        for (int i = 0; i < maps.Length; i++)
+        {
+            if (maps[i] == null) continue;
+            var r = new Rect(x + i * (bw + gap), y, bw, bh);
+            anyOver |= r.Contains(_mousePosRef);
+            bool active = i == _currentMapIndex;
+            _btnStyle.normal.textColor  = active ? Color.yellow : Color.white;
+            _btnStyle.focused.textColor = _btnStyle.normal.textColor;
+            _btnStyle.hover.textColor   = _btnStyle.normal.textColor;
+            string label = string.IsNullOrEmpty(maps[i].displayName) ? maps[i].name : maps[i].displayName;
+            if (GUI.Button(r, label, _btnStyle) && !active)
+            {
+                _currentMapIndex = i;
+                builder.LoadMap(maps[i]);
+            }
+        }
+        return anyOver;
     }
 
     private bool DrawBuildMenu(GameManager gm)

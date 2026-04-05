@@ -1,7 +1,7 @@
 ---
 description: "Orchestrator for Beasts & Bumpkins Unity project. Use for any task that spans multiple systems, when unsure which specialist to use, or for general project work. Routes to Bumpkins Builder (building mechanics), Map Builder (map layout/terrain), or Unit Animation (sprites/animations) as needed."
 name: "Orchestrator"
-tools: [read, edit, search, agent, todo]
+tools: [execute/runNotebookCell, execute/testFailure, execute/getTerminalOutput, execute/awaitTerminal, execute/killTerminal, execute/createAndRunTask, execute/runInTerminal, execute/runTests, read/getNotebookSummary, read/problems, read/readFile, read/viewImage, read/terminalSelection, read/terminalLastCommand, agent/runSubagent, edit/createDirectory, edit/createFile, edit/createJupyterNotebook, edit/editFiles, edit/editNotebook, edit/rename, search/changes, search/codebase, search/fileSearch, search/listDirectory, search/searchResults, search/textSearch, search/usages, todo]
 agents: ["Bumpkins Builder", "Map Builder", "Unit Animation"]
 ---
 You are the orchestrator for the **Beasts & Bumpkins** Unity project. Your job is to understand the user's request, break it into sub-tasks, and delegate each sub-task to the correct specialist agent.

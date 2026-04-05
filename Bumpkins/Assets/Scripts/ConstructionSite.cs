@@ -214,10 +214,11 @@ public class ConstructionSite : MonoBehaviour
         Vector3 CellWorld(float cx, float cy) =>
             new Vector3((cx - cy) * layout.isoHalfW, (cx + cy) * layout.isoHalfH, -0.05f);
 
-        int CellSort(float cx, float cy) =>
-            -(Mathf.RoundToInt(cx) + Mathf.RoundToInt(cy)) + 1;
+        // Fixed sort order: +3 over terrain origin ensures cells always render above
+        // the building sprite (bSort = -(col+row)+1) regardless of cell position inside footprint.
+        int cellSort = -(col + row) + 3;
 
-        void Spawn(Vector3 worldPos, int sortOrder, WorkCell.CellKind kind)
+        void Spawn(Vector3 worldPos, WorkCell.CellKind kind)
         {
             var go   = new GameObject($"WorkCell_{_workCells.Count}");
             go.transform.SetParent(transform.parent);
@@ -227,22 +228,22 @@ public class ConstructionSite : MonoBehaviour
             Sprite active = kind == WorkCell.CellKind.Corner ? _vrockSprite  : _vsawSprite;
             Sprite done   = kind == WorkCell.CellKind.Corner ? _bricksSprite : _planksSprite;
             var cellSize  = new Vector2(layout.isoHalfW * 2f, layout.isoHalfH * 2f);
-            cell.Init(kind, idle, active, done, sortOrder, cellSize);
+            cell.Init(kind, idle, active, done, cellSort, cellSize);
             _workCells.Add(cell);
         }
 
-        // 4 corners
-        Spawn(CellWorld(col - 1,             row - 1    ), CellSort(col - 1, row - 1), WorkCell.CellKind.Corner);
-        Spawn(CellWorld(col + w,             row - 1    ), CellSort(col + w, row - 1), WorkCell.CellKind.Corner);
-        Spawn(CellWorld(col + w,             row + h    ), CellSort(col + w, row + h), WorkCell.CellKind.Corner);
-        Spawn(CellWorld(col - 1,             row + h    ), CellSort(col - 1, row + h), WorkCell.CellKind.Corner);
+        // 4 corners — inside the footprint boundary tiles
+        Spawn(CellWorld(col,         row        ), WorkCell.CellKind.Corner);
+        Spawn(CellWorld(col + w - 1, row        ), WorkCell.CellKind.Corner);
+        Spawn(CellWorld(col + w - 1, row + h - 1), WorkCell.CellKind.Corner);
+        Spawn(CellWorld(col,         row + h - 1), WorkCell.CellKind.Corner);
 
         // 3 side midpoints (NW / NE / SE) — SW = door side, omitted
         float wMid = col + (w - 1) * 0.5f;
         float hMid = row + (h - 1) * 0.5f;
-        Spawn(CellWorld(wMid,    row - 1), CellSort(wMid,    row - 1), WorkCell.CellKind.Side);  // NW
-        Spawn(CellWorld(col + w, hMid   ), CellSort(col + w, hMid   ), WorkCell.CellKind.Side);  // NE
-        Spawn(CellWorld(wMid,    row + h), CellSort(wMid,    row + h), WorkCell.CellKind.Side);  // SE
+        Spawn(CellWorld(wMid,        row        ), WorkCell.CellKind.Side);  // NW face
+        Spawn(CellWorld(col + w - 1, hMid       ), WorkCell.CellKind.Side);  // NE face
+        Spawn(CellWorld(wMid,        row + h - 1), WorkCell.CellKind.Side);  // SE face
     }
 
     // ---- Auto-assign ----

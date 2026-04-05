@@ -36,17 +36,68 @@ public class TestBumpkinSetup : MonoBehaviour
             var bldMgr = new GameObject("BuildManager");
             bldMgr.AddComponent<BuildManager>();
         }
-
-        // Campfire staat op iso-grid (25,22) → world ≈ (4.5, 36.1)
-        // Bumpkins spawnen iets voor het kampvuur (lagere y = dichter bij camera)
-        var male = SpawnBumpkin("Bumpkin_Male",   new Vector3(3.0f, 35.0f, 0f), BumpkinController.BumpkinType.Male,   new Color(0.3f, 0.6f, 1f));
-                   SpawnBumpkin("Bumpkin_Female", new Vector3(6.0f, 34.7f, 0f), BumpkinController.BumpkinType.Female, new Color(1f, 0.6f, 0.8f));
-
-        // Pre-select male bumpkin
-        SelectionManager.Instance?.Select(male);
     }
 
-    private BumpkinController SpawnBumpkin(string goName, Vector3 pos, BumpkinController.BumpkinType type, Color color)
+    void Start()
+    {
+        var builder = FindFirstObjectByType<GridMapBuilder>();
+        Vector3 campfireWorld = new Vector3(4.5f, 36.0f, 0f); // fallback
+        if (builder?.layout != null && builder.layout.buildings != null)
+        {
+            foreach (var b in builder.layout.buildings)
+            {
+                if (b.type == BuildingType.Campfire)
+                {
+                    var wp = builder.layout.TileToWorld(b.position.x, b.position.y);
+                    campfireWorld = new Vector3(wp.x, wp.y, 0f);
+                    break;
+                }
+            }
+        }
+
+        float hw = builder?.layout?.isoHalfW ?? 0.5f;
+        float hh = builder?.layout?.isoHalfH ?? 0.256f;
+
+        // Apply map startGold if set
+        var layout = builder?.layout;
+        if (layout != null && layout.startGold > 0 && GameManager.Instance != null)
+            GameManager.Instance.SetGold(layout.startGold);
+
+        // Determine spawn list — use layout list or fall back to 1 male + 1 female
+        BumpkinSpawnEntry[] spawnList;
+        if (layout?.startingBumpkins != null && layout.startingBumpkins.Length > 0)
+            spawnList = layout.startingBumpkins;
+        else
+            spawnList = new BumpkinSpawnEntry[]
+            {
+                new BumpkinSpawnEntry { type = BumpkinSpawnType.Male },
+                new BumpkinSpawnEntry { type = BumpkinSpawnType.Female },
+            };
+
+        // Arrange in a small arc around the campfire
+        BumpkinController firstMale = null;
+        for (int i = 0; i < spawnList.Length; i++)
+        {
+            float angle = (spawnList.Length == 1) ? -Mathf.PI * 0.5f
+                        : Mathf.PI + i * Mathf.PI / Mathf.Max(1, spawnList.Length - 1);
+            float radius = hw * 2f;
+            var pos = campfireWorld + new Vector3(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius * 0.5f, 0f);
+
+            bool isMale  = spawnList[i].type == BumpkinSpawnType.Male  || spawnList[i].type == BumpkinSpawnType.Boy;
+            bool isChild = spawnList[i].type == BumpkinSpawnType.Boy   || spawnList[i].type == BumpkinSpawnType.Girl;
+            var bType = isMale ? BumpkinController.BumpkinType.Male : BumpkinController.BumpkinType.Female;
+            var color = isMale ? new Color(0.3f, 0.6f, 1f) : new Color(1f, 0.6f, 0.8f);
+            string label = spawnList[i].type.ToString();
+
+            var bc = SpawnBumpkin($"Bumpkin_{label}_{i}", pos, bType, color, isChild);
+            if (firstMale == null && isMale && !isChild) firstMale = bc;
+        }
+
+        // Pre-select first adult male (or first bumpkin if none)
+        SelectionManager.Instance?.Select(firstMale);
+    }
+
+    private BumpkinController SpawnBumpkin(string goName, Vector3 pos, BumpkinController.BumpkinType type, Color color, bool isChild = false)
     {
         var go = new GameObject(goName);
         go.transform.position = pos;
@@ -67,6 +118,8 @@ public class TestBumpkinSetup : MonoBehaviour
         // Logic
         var bc = go.AddComponent<BumpkinController>();
         bc.bumpkinType = type;
+        bc.isChild = isChild;
+        if (isChild) go.transform.localScale = new Vector3(2.0f, 2.0f, 1f);
 
         go.AddComponent<BumpkinClick>();
         go.AddComponent<BumpkinAnimator>();

@@ -39,20 +39,38 @@ public class CameraController : MonoBehaviour
 
     void Start()
     {
-        // Bereken bounds op basis van layout zodat inspector-waarden niet stalen
-        var layout = FindFirstObjectByType<GridMapBuilder>()?.layout;
-        if (layout != null)
+        var builder = FindFirstObjectByType<GridMapBuilder>();
+        if (builder?.layout != null)
+            AdaptToLayout(builder.layout);
+    }
+
+    /// <summary>Recalculate pan bounds and re-center camera for the given layout.</summary>
+    public void AdaptToLayout(MapLayoutData layout)
+    {
+        float hw = layout.isoHalfW;
+        float hh = layout.isoHalfH;
+        int   c  = layout.cols - 1;
+        int   r  = layout.rows - 1;
+        minX = -(r * hw) - 4f;
+        maxX =  (c * hw) + 4f;
+        minY = -2f;
+        maxY =  (c + r) * hh + 4f;
+
+        // Center on campfire if present, otherwise center of map
+        Vector3 center = new Vector3((c - r) * hw * 0.5f, (c + r) * hh * 0.5f, transform.position.z);
+        if (layout.buildings != null)
         {
-            float hw = layout.isoHalfW;
-            float hh = layout.isoHalfH;
-            int   c  = layout.cols - 1;
-            int   r  = layout.rows - 1;
-            // Uiterste iso-coördinaten + marge
-            minX = -(r * hw) - 4f;
-            maxX =  (c * hw) + 4f;
-            minY = -2f;
-            maxY =  (c + r) * hh + 4f;
+            foreach (var b in layout.buildings)
+            {
+                if (b.type == BuildingType.Campfire)
+                {
+                    var wp = layout.TileToWorld(b.position.x, b.position.y);
+                    center = new Vector3(wp.x, wp.y, transform.position.z);
+                    break;
+                }
+            }
         }
+        transform.position = center;
     }
 
     void Update()

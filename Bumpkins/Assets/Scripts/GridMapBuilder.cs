@@ -30,123 +30,89 @@ public class GridMapBuilder : MonoBehaviour
     public GameObject chickenCoopPrefab;
     public GameObject housePrefab;
 
+    void Awake()
+    {
+        // Resolve layout early (Awake) so other scripts can read it in their Start()
+        if (layout == null)
+        {
+            var ui = FindFirstObjectByType<UIManager>();
+            if (ui != null && ui.maps != null && ui.maps.Length > 0)
+                layout = ui.maps[0];
+        }
+    }
+
     void Start()
     {
         if (layout == null) { Debug.LogError("[GridMapBuilder] No layout assigned!"); return; }
         BuildTerrain();
         BuildBuildings();
-        SpawnWolf();
-        SpawnWasp();
-        SpawnBat();
-        SpawnOgre();
-        SpawnZombie();
-        SpawnGiant();
-        SpawnBloodWasp();
+        SpawnEnemies();
+        FindFirstObjectByType<CameraController>()?.AdaptToLayout(layout);
     }
 
-    private void SpawnBloodWasp()
+    /// <summary>Tear down the current map and build a new one at runtime.</summary>
+    public void LoadMap(MapLayoutData newLayout)
     {
-        var go = new GameObject("BloodWasp");
-        go.transform.position = layout.TileToWorld(44, 33);
-        var sr = go.AddComponent<SpriteRenderer>();
-        var sp = Resources.Load<Sprite>("Sprites/Animals/bloodwsp");
-        if (sp != null) { sr.sprite = sp; go.transform.localScale = new Vector3(3f, 3f, 1f); }
-        sr.sortingOrder = 10;
-        go.AddComponent<BoxCollider2D>();
-        go.AddComponent<BloodWaspController>();
-        Debug.Log("[BloodWasp] Blood Wasp gespawnd op de kaart");
-    }
+        if (newLayout == null) { Debug.LogError("[GridMapBuilder] LoadMap: newLayout is null"); return; }
+        layout = newLayout;
 
-    private void SpawnBat()
-    {
-        var go = new GameObject("Bat");
-        go.transform.position = layout.TileToWorld(38, 2);
-        var sr = go.AddComponent<SpriteRenderer>();
-        var sp = Resources.Load<Sprite>("Sprites/Animals/bat");
-        if (sp != null) { sr.sprite = sp; go.transform.localScale = new Vector3(3f, 3f, 1f); }
-        sr.sortingOrder = 10;
-        go.AddComponent<BoxCollider2D>();
-        go.AddComponent<BatController>();
-        Debug.Log("[Bat] Bat gespawnd op de kaart");
-    }
+        // Destroy all child GameObjects (terrain, buildings, enemies)
+        for (int i = transform.childCount - 1; i >= 0; i--)
+            Destroy(transform.GetChild(i).gameObject);
 
-    private void SpawnOgre()
-    {
-        var go = new GameObject("Ogre");
-        go.transform.position = layout.TileToWorld(45, 30);
-        var sr = go.AddComponent<SpriteRenderer>();
-        var sp = Resources.Load<Sprite>("Sprites/Animals/ogrestil");
-        if (sp != null) { sr.sprite = sp; go.transform.localScale = new Vector3(3f, 3f, 1f); }
-        sr.sortingOrder = 10;
-        go.AddComponent<BoxCollider2D>();
-        go.AddComponent<OgreController>();
-        Debug.Log("[Ogre] Ogre gespawnd op de kaart");
-    }
-
-    private void SpawnZombie()
-    {
-        var go = new GameObject("Zombie");
-        go.transform.position = layout.TileToWorld(2, 30);
-        var sr = go.AddComponent<SpriteRenderer>();
-        var sp = Resources.Load<Sprite>("Sprites/Animals/zombie");
-        if (sp != null) { sr.sprite = sp; go.transform.localScale = new Vector3(3f, 3f, 1f); }
-        sr.sortingOrder = 10;
-        go.AddComponent<BoxCollider2D>();
-        go.AddComponent<ZombieController>();
-        Debug.Log("[Zombie] Zombie gespawnd op de kaart");
-    }
-
-    private void SpawnGiant()
-    {
-        var go = new GameObject("Giant");
-        go.transform.position = layout.TileToWorld(24, 2);
-        var sr = go.AddComponent<SpriteRenderer>();
-        var sp = Resources.Load<Sprite>("Sprites/Animals/gianstil");
-        if (sp != null) { sr.sprite = sp; go.transform.localScale = new Vector3(3f, 3f, 1f); }
-        sr.sortingOrder = 10;
-        go.AddComponent<BoxCollider2D>();
-        go.AddComponent<GiantController>();
-        Debug.Log("[Giant] Giant gespawnd op de kaart");
-    }
-
-    private void SpawnWasp()
-    {
-        var waspGo = new GameObject("Wasp");
-        waspGo.transform.position = layout.TileToWorld(10, 2);
-
-        var sr = waspGo.AddComponent<SpriteRenderer>();
-        var sp = Resources.Load<Sprite>("Sprites/Animals/wasp");
-        if (sp != null)
+        // Destroy any loose enemy GameObjects spawned at root level
+        foreach (var t in System.Enum.GetValues(typeof(EnemyType)))
         {
-            sr.sprite = sp;
-            float scale = 3f;
-            waspGo.transform.localScale = new Vector3(scale, scale, 1f);
+            var go = GameObject.Find(t.ToString());
+            if (go != null) Destroy(go);
         }
-        sr.sortingOrder = 10;
 
-        waspGo.AddComponent<BoxCollider2D>();
-        waspGo.AddComponent<WaspController>();
-        Debug.Log("[Wasp] Wasp gespawnd op de kaart");
+        BuildTerrain();
+        BuildBuildings();
+        SpawnEnemies();
+        FindFirstObjectByType<CameraController>()?.AdaptToLayout(layout);
     }
 
-    private void SpawnWolf()
+    private void SpawnEnemies()
     {
-        var wolfGo = new GameObject("Wolf");
-        wolfGo.transform.position = layout.TileToWorld(2, 18);
-
-        var sr = wolfGo.AddComponent<SpriteRenderer>();
-        var sp = Resources.Load<Sprite>("Sprites/Animals/wolfstil");
-        if (sp != null)
+        if (layout.enemies == null) return;
+        foreach (var entry in layout.enemies)
         {
-            sr.sprite = sp;
-            float scale = 3f;
-            wolfGo.transform.localScale = new Vector3(scale, scale, 1f);
+            var go = new GameObject(entry.type.ToString());
+            go.transform.position = layout.TileToWorld(entry.position.x, entry.position.y);
+            var sr = go.AddComponent<SpriteRenderer>();
+            var sp = Resources.Load<Sprite>(SpritePath(entry.type));
+            if (sp != null) { sr.sprite = sp; go.transform.localScale = new Vector3(3f, 3f, 1f); }
+            sr.sortingOrder = 10;
+            go.AddComponent<BoxCollider2D>();
+            AddEnemyController(go, entry.type);
         }
-        sr.sortingOrder = 10;
+    }
 
-        wolfGo.AddComponent<BoxCollider2D>();
-        wolfGo.AddComponent<WolfController>();
-        Debug.Log("[Wolf] Wolf gespawnd op de kaart");
+    private static string SpritePath(EnemyType t) => t switch
+    {
+        EnemyType.Wolf      => "Sprites/Animals/wolfstil",
+        EnemyType.Wasp      => "Sprites/Animals/wasp",
+        EnemyType.Bat       => "Sprites/Animals/bat",
+        EnemyType.Ogre      => "Sprites/Animals/ogrestil",
+        EnemyType.Zombie    => "Sprites/Animals/zombie",
+        EnemyType.Giant     => "Sprites/Animals/gianstil",
+        EnemyType.BloodWasp => "Sprites/Animals/bloodwsp",
+        _                   => "",
+    };
+
+    private static void AddEnemyController(GameObject go, EnemyType t)
+    {
+        switch (t)
+        {
+            case EnemyType.Wolf:      go.AddComponent<WolfController>();      break;
+            case EnemyType.Wasp:      go.AddComponent<WaspController>();      break;
+            case EnemyType.Bat:       go.AddComponent<BatController>();       break;
+            case EnemyType.Ogre:      go.AddComponent<OgreController>();      break;
+            case EnemyType.Zombie:    go.AddComponent<ZombieController>();    break;
+            case EnemyType.Giant:     go.AddComponent<GiantController>();     break;
+            case EnemyType.BloodWasp: go.AddComponent<BloodWaspController>(); break;
+        }
     }
 
     // ---- Terrain ----

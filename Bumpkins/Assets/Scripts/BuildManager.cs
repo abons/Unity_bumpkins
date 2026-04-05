@@ -626,17 +626,18 @@ public class BuildManager : MonoBehaviour
     private static (int w, int h) FootprintFor(BuildingType type) => type switch
     {
         BuildingType.ChickenCoop => (1, 1),
-        BuildingType.Mill        => (3, 2),
-        BuildingType.Farm        => (3, 3),
+        BuildingType.House       => (3, 3),
+        BuildingType.Toolshed    => (3, 3),
+        BuildingType.Mill        => (4, 3),
+        BuildingType.Farm        => (5, 5),
         BuildingType.Dairy       => (3, 3),
         _                        => (2, 2),
     };
 
     private static Vector2Int DoorExit(BuildingType type, Vector2Int gridPos) => type switch
     {
-        BuildingType.Toolshed => new Vector2Int(gridPos.x,     gridPos.y - 1), // SE: step -row
-        BuildingType.Mill     => new Vector2Int(gridPos.x + 1, gridPos.y - 1), // SE corner: +col -row
-        _                     => new Vector2Int(gridPos.x - 1, gridPos.y),     // SW: step -col
+    BuildingType.Mill => new Vector2Int(gridPos.x + 1, gridPos.y - 1), // SE corner: +col -row
+    _                 => new Vector2Int(gridPos.x - 1, gridPos.y),     // SW: step -col
     };
 
     private int CostFor(BuildingType type)

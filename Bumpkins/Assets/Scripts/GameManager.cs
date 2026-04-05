@@ -51,6 +51,8 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public void SetGold(int amount) { Gold = amount; }
+
     // ---- Building unlocks ----
     public void UnlockMill()  { MillUnlocked  = true; Debug.Log("[GM] Molen ontgrendeld!"); }
     public void UnlockDairy() { DairyUnlocked = true; Debug.Log("[GM] Zuivelfabriek ontgrendeld!"); }

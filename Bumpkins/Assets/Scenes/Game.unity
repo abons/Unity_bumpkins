@@ -308,7 +308,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e9f7caa710f601242897419e28987461, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GridMapBuilder
-  layout: {fileID: 11400000, guid: ed20d258fb875794293e447cb09a05c8, type: 2}
+  layout: {fileID: 11400000, guid: 8b4b3bf79bf61cc4397168041d4b6b5d, type: 2}
   grassPrefab: {fileID: 0}
   roadPrefab: {fileID: 0}
   farmPlotPrefab: {fileID: 0}
@@ -318,7 +318,7 @@ MonoBehaviour:
   townHallPrefab: {fileID: 0}
   millPrefab: {fileID: 0}
   farmPrefab: {fileID: 0}
-  cowPenPrefab: {fileID: 0}
+  cowPrefab: {fileID: 0}
   campfirePrefab: {fileID: 0}
   rockpilePrefab: {fileID: 0}
   woodpilePrefab: {fileID: 0}

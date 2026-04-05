@@ -11,6 +11,7 @@ Zie [DESIGN.md](DESIGN.md) voor core loops, data model en entities.
 **Update 5:** Wolf enemy basisimplementatie klaar — `WolfController.cs` (Roaming/Hunting/Attacking/Dead), bumpkin death sequence met `d_male`/skeleton sprites, `IsDead` guard, selection clearing bij dood.
 **Update 6:** Wasp enemy toegevoegd — `WaspController.cs` (Roaming/Hunting/Attacking/Dead), jaagt alleen bumpkins, sneller dan wolf (chaseSpeed 4.5f), steek na 1.5s.
 **Update 7:** Vijf extra enemies toegevoegd (Bat, Ogre, Zombie, Giant, BloodWasp). Elder systeem: bumpkins worden na 60s elder (halve snelheid, werken niet, vluchten voor vijanden, sterven na nog 60s).
+**Update 8:** Multi-map systeem — Mission 1 kaart toegevoegd (ASCII-layout, geen enemies). `MapLayoutData` uitgebreid met `displayName`, `EnemyType` enum, `EnemySpawnEntry[]`. `GridMapBuilder.LoadMap()` voor runtime map-wisseling. UIManager map-switch knoppen. Generators hernoemd: `EnemyTestLayoutGenerator` + `Mission1LayoutGenerator`.
 
 ---
 

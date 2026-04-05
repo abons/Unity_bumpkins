@@ -2,6 +2,41 @@
 
 ---
 
+## Sessie 11 — 5 april 2026 (multi-map systeem)
+
+### Mission 1 kaart
+- `Mission1LayoutGenerator.cs` aangemaakt — 52×21 grid gebaseerd op ASCII-layout
+- Water rand, bergen rechts, boomclusters linksboven, kruispunt van wegen, campfire als centraal punt
+- Geen enemies op deze kaart (`enemies = new EnemySpawnEntry[0]`)
+- Asset opgeslagen als `Mission1Layout.asset`
+
+### MapLayoutData uitbreidingen
+- `displayName` string toegevoegd — label voor UI-knoppen
+- `EnemyType` enum toegevoegd: Wolf, Wasp, Bat, Ogre, Zombie, Giant, BloodWasp
+- `EnemySpawnEntry` klasse (type + position) toegevoegd
+- `bool spawnEnemies` vervangen door `EnemySpawnEntry[] enemies`
+
+### GridMapBuilder refactor
+- 7 losse `SpawnX()` methodes vervangen door één `SpawnEnemies()` loop
+- `SpritePath(EnemyType)` en `AddEnemyController(GameObject, EnemyType)` switch helpers
+- `LoadMap(MapLayoutData)` methode toegevoegd — teart alle children af en rebuildt de kaart; ondersteunt runtime map-wisseling zonder scene reload
+
+### UIManager map-switch knoppen
+- `MapLayoutData[] maps` array toegevoegd
+- `DrawMapButtons()` tekent één knop per map gecentreerd bovenaan; actieve kaart geel
+- Klik → `GridMapBuilder.LoadMap()` aangeroepen
+
+### Bestand opruimen
+- `Map1LayoutGenerator.cs` → hernoemd naar `EnemyTestLayoutGenerator.cs` (menu: Generate Enemy Test Layout)
+- `Map2LayoutGenerator.cs` → hernoemd naar `Mission1LayoutGenerator.cs` (menu: Generate Mission 1 Layout)
+- Oude `Map1Layout.asset` en `Map2Layout.asset` verwijderd
+- Asset locaties: `EnemyTestLayout.asset`, `Mission1Layout.asset`
+
+### BuildManager bugfix
+- Switch expression `DoorExit()` miste sluitende `};` → CS1002 opgelost
+
+---
+
 ## Sessie 10 — 4 april 2026 (extra enemies + elder systeem)
 
 ### Nieuwe enemy controllers

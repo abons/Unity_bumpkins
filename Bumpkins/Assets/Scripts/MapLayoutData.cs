@@ -1,6 +1,24 @@
 using UnityEngine;
 using System;
 
+public enum EnemyType { Wolf, Wasp, Bat, Ogre, Zombie, Giant, BloodWasp }
+
+[Serializable]
+public class EnemySpawnEntry
+{
+    public EnemyType type;
+    [Tooltip("Tile position (col, row)")]
+    public Vector2Int position;
+}
+
+public enum BumpkinSpawnType { Male, Female, Boy, Girl }
+
+[Serializable]
+public class BumpkinSpawnEntry
+{
+    public BumpkinSpawnType type;
+}
+
 /// <summary>
 /// One building entry in the map layout.
 /// </summary>
@@ -20,6 +38,10 @@ public class BuildingEntry
 [CreateAssetMenu(menuName = "Bumpkins/MapLayoutData", fileName = "Map1Layout")]
 public class MapLayoutData : ScriptableObject
 {
+    [Header("Display")]
+    [Tooltip("Label shown on the map-switch button")]
+    public string displayName;
+
     [Header("Grid dimensions")]
     public int cols = 24;
     public int rows = 18;
@@ -36,6 +58,17 @@ public class MapLayoutData : ScriptableObject
 
     [Header("Buildings")]
     public BuildingEntry[] buildings;
+
+    [Header("Enemies")]
+    public EnemySpawnEntry[] enemies;
+
+    [Header("Starting Bumpkins")]
+    [Tooltip("Leave empty to use the default 1 male + 1 female")]
+    public BumpkinSpawnEntry[] startingBumpkins;
+
+    [Header("Starting Gold")]
+    [Tooltip("0 = use GameConfig.startGold")]
+    public int startGold = 0;
 
     /// <summary>Get terrain tile at (col, row).</summary>
     public TileType GetTile(int col, int row)
