@@ -61,7 +61,7 @@ public class BatController : MonoBehaviour
             case State.Hunting: UpdateHunting(); break;
         }
 
-        _sr.sortingOrder = Mathf.RoundToInt(-transform.position.y / 0.256f) + 50;
+        _sr.sortingOrder = Mathf.RoundToInt(-transform.position.y / 0.768f) + 50;
     }
 
     private void UpdateRoaming()

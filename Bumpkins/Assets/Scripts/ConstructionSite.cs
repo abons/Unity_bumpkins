@@ -1,10 +1,11 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
 /// Multi-stage construction: Blueprint → Resources → Roofing → Done.
 /// Attach to the root GO created by BuildManager.  Start() will find the
-/// SpriteRenderer child and spawn Logpile / Rockpile props.
+/// SpriteRenderer child and manage WorkCells around the footprint.
 /// </summary>
 public class ConstructionSite : MonoBehaviour
 {
@@ -12,23 +13,18 @@ public class ConstructionSite : MonoBehaviour
 
     [Header("Config")]
     public BuildingType buildingType;
-    public float workDuration    = 4f;   // seconds per worker trip
-    public int   workForResources = 3;   // trips needed for walls stage
-    public int   workForRoof      = 2;   // trips needed for complete
+    public float workDuration    = 5f;   // seconds per worker trip
     public int   maxWorkers       = 2;
 
-    public Stage CurrentStage   { get; private set; }
-    public bool  CanBeWorked    => CurrentStage != Stage.Done && _currentWorkers < maxWorkers;
-    /// <summary>World position to walk towards when working here.</summary>
-    public Vector2 WorkPosition => CurrentStage == Stage.Resources && _logpile != null
-        ? (Vector2)_logpile.transform.position
-        : (Vector2)transform.position + new Vector2(0f, -0.3f);
+    public Stage CurrentStage { get; private set; }
+    public bool  CanBeWorked  => CurrentStage != Stage.Done
+                              && _currentWorkers < maxWorkers
+                              && GetFreeCell() != null;
 
-    private int _workDone;
     private int _currentWorkers;
-    private GameObject     _logpile;
-    private GameObject     _rockpile;
-    private SpriteRenderer _buildingSr;
+    private SpriteRenderer       _buildingSr;
+    private List<WorkCell>       _workCells  = new List<WorkCell>();
+    private Sprite _pickSprite, _sawSprite, _vrockSprite, _vsawSprite, _bricksSprite, _planksSprite;
 
     // ---- Unity ----
 
@@ -40,7 +36,6 @@ public class ConstructionSite : MonoBehaviour
         if (_buildingSr != null)
             _buildingSr.color = new Color(0.65f, 0.85f, 1f, 0.55f);
 
-        SpawnProps();
         CurrentStage = Stage.Resources;
 
         // Auto-assign idle males
@@ -56,58 +51,42 @@ public class ConstructionSite : MonoBehaviour
 
     // ---- Worker reservation ----
 
-    public bool TryReserveWorker(BumpkinController b)
+    /// <summary>
+    /// Try to assign a male bumpkin to a free workcell.
+    /// Returns the reserved WorkCell, or null if none available.
+    /// </summary>
+    public WorkCell TryReserveWorker(BumpkinController b)
     {
-        if (!CanBeWorked) return false;
-        if (!b.IsMale)   return false;
+        if (!b.IsMale)    return null;
+        if (!CanBeWorked) return null;
+        var cell = GetFreeCell();
+        if (cell == null) return null;
+        cell.TryOccupy();
         _currentWorkers++;
-        return true;
-    }
-
-    public void ReleaseWorker()
-    {
-        _currentWorkers = Mathf.Max(0, _currentWorkers - 1);
+        return cell;
     }
 
     /// <summary>Called by bumpkin after finishing one work trip.</summary>
-    public void DeliverWork()
+    public void DeliverWork(WorkCell cell)
     {
         _currentWorkers = Mathf.Max(0, _currentWorkers - 1);
-        _workDone++;
+        cell?.MarkDone();
 
-        if (CurrentStage == Stage.Resources && _workDone >= workForResources)
-        {
-            _workDone = 0;
-            AdvanceToRoofing();
-        }
-        else if (CurrentStage == Stage.Roofing && _workDone >= workForRoof)
-        {
-            _workDone = 0;
+        if (AllCellsDone())
             Complete();
-        }
         else
-        {
-            // More work needed in this stage — try to pull in another worker
             TryAutoAssignWorkers();
-        }
+    }
+
+    private bool AllCellsDone()
+    {
+        if (_workCells.Count == 0) return false;
+        foreach (var c in _workCells)
+            if (c != null && !c.IsDone) return false;
+        return true;
     }
 
     // ---- Stage transitions ----
-
-    private void AdvanceToRoofing()
-    {
-        CurrentStage = Stage.Roofing;
-
-        if (_logpile  != null) Destroy(_logpile);
-        if (_rockpile != null) Destroy(_rockpile);
-
-        // Walls: sepia/brown — "house without roof"
-        if (_buildingSr != null)
-            _buildingSr.color = new Color(0.85f, 0.72f, 0.50f, 1f);
-
-        Debug.Log($"[Construction] {buildingType} aan {name}: muren klaar, begin dak…");
-        TryAutoAssignWorkers();
-    }
 
     private void Complete()
     {
@@ -115,6 +94,11 @@ public class ConstructionSite : MonoBehaviour
 
         if (_buildingSr != null)
             _buildingSr.color = Color.white;
+
+        // Dissolve all workcells — construction is finished
+        foreach (var cell in _workCells)
+            if (cell != null) cell.Dissolve();
+        _workCells.Clear();
 
         ActivateBuilding();
         Debug.Log($"[Construction] {buildingType} aan {name}: KLAAR!");
@@ -191,39 +175,74 @@ public class ConstructionSite : MonoBehaviour
         go.AddComponent<ChickenAnimator>();
     }
 
-    // ---- Props ----
+    // ---- WorkCells ----
 
-    private void SpawnProps()
+    private WorkCell GetFreeCell()
     {
-        var layout = FindFirstObjectByType<GridMapBuilder>()?.layout;
-        float offset = layout != null ? layout.isoHalfW * 0.9f : 0.3f;
-        int   sr     = _buildingSr != null ? _buildingSr.sortingOrder + 2 : 12;
-
-        _logpile  = SpawnProp("Sprites/Buildings/Logpile",  new Vector3(-offset, -0.05f, 0f), offset, sr);
-        _rockpile = SpawnProp("Sprites/Buildings/Rockpile", new Vector3( offset, -0.05f, 0f), offset, sr);
+        foreach (var c in _workCells)
+            if (c != null && !c.IsOccupied && !c.IsDone) return c;
+        return null;
     }
 
-    private GameObject SpawnProp(string path, Vector3 localOffset, float targetW, int sortOrder)
+    /// <summary>
+    /// Called by BuildManager immediately after placement.
+    /// Spawns 7 workcells: 4 corners (pick icon) + 3 sides (saw icon, NW/NE/SE).
+    /// The SW face is the door side — no cell there.
+    /// </summary>
+    public void InitWorkCells(Vector2Int gridPos, MapLayoutData layout)
     {
-        var go = new GameObject(System.IO.Path.GetFileNameWithoutExtension(path));
-        go.transform.SetParent(transform);
-        go.transform.localPosition = localOffset;
+        if (layout == null) return;
 
-        var sr = go.AddComponent<SpriteRenderer>();
-        var sp = Resources.Load<Sprite>(path);
-        if (sp != null)
+        _pickSprite   = Resources.Load<Sprite>("Sprites/Buildings/pick");
+        _sawSprite    = Resources.Load<Sprite>("Sprites/Buildings/saw");
+        _vrockSprite  = Resources.Load<Sprite>("Sprites/Buildings/vpick");
+        _vsawSprite   = Resources.Load<Sprite>("Sprites/Buildings/vsaw");
+        _bricksSprite = Resources.Load<Sprite>("Sprites/Buildings/bricks");
+        _planksSprite = Resources.Load<Sprite>("Sprites/Buildings/planks");
+
+        int col = gridPos.x;
+        int row = gridPos.y;
+        int w = 2, h = 2;  // default (House, Toolshed)
+        switch (buildingType)
         {
-            sr.sprite = sp;
-            float sc  = targetW * 0.45f / sp.bounds.size.x;
-            go.transform.localScale = new Vector3(sc, sc, 1f);
+            case BuildingType.Mill:  w = 3; h = 2; break;
+            case BuildingType.Farm:
+            case BuildingType.Dairy: w = 3; h = 3; break;
         }
-        else
+
+        // Fractional iso world position from grid coords
+        Vector3 CellWorld(float cx, float cy) =>
+            new Vector3((cx - cy) * layout.isoHalfW, (cx + cy) * layout.isoHalfH, -0.05f);
+
+        int CellSort(float cx, float cy) =>
+            -(Mathf.RoundToInt(cx) + Mathf.RoundToInt(cy)) + 1;
+
+        void Spawn(Vector3 worldPos, int sortOrder, WorkCell.CellKind kind)
         {
-            sr.color = new Color(0.6f, 0.5f, 0.3f);
-            go.transform.localScale = new Vector3(targetW * 0.4f, targetW * 0.4f, 1f);
+            var go   = new GameObject($"WorkCell_{_workCells.Count}");
+            go.transform.SetParent(transform.parent);
+            go.transform.position = worldPos;
+            var cell = go.AddComponent<WorkCell>();
+            Sprite idle   = kind == WorkCell.CellKind.Corner ? _pickSprite   : _sawSprite;
+            Sprite active = kind == WorkCell.CellKind.Corner ? _vrockSprite  : _vsawSprite;
+            Sprite done   = kind == WorkCell.CellKind.Corner ? _bricksSprite : _planksSprite;
+            var cellSize  = new Vector2(layout.isoHalfW * 2f, layout.isoHalfH * 2f);
+            cell.Init(kind, idle, active, done, sortOrder, cellSize);
+            _workCells.Add(cell);
         }
-        sr.sortingOrder = sortOrder;
-        return go;
+
+        // 4 corners
+        Spawn(CellWorld(col - 1,             row - 1    ), CellSort(col - 1, row - 1), WorkCell.CellKind.Corner);
+        Spawn(CellWorld(col + w,             row - 1    ), CellSort(col + w, row - 1), WorkCell.CellKind.Corner);
+        Spawn(CellWorld(col + w,             row + h    ), CellSort(col + w, row + h), WorkCell.CellKind.Corner);
+        Spawn(CellWorld(col - 1,             row + h    ), CellSort(col - 1, row + h), WorkCell.CellKind.Corner);
+
+        // 3 side midpoints (NW / NE / SE) — SW = door side, omitted
+        float wMid = col + (w - 1) * 0.5f;
+        float hMid = row + (h - 1) * 0.5f;
+        Spawn(CellWorld(wMid,    row - 1), CellSort(wMid,    row - 1), WorkCell.CellKind.Side);  // NW
+        Spawn(CellWorld(col + w, hMid   ), CellSort(col + w, hMid   ), WorkCell.CellKind.Side);  // NE
+        Spawn(CellWorld(wMid,    row + h), CellSort(wMid,    row + h), WorkCell.CellKind.Side);  // SE
     }
 
     // ---- Auto-assign ----
@@ -237,8 +256,9 @@ public class ConstructionSite : MonoBehaviour
             if (!CanBeWorked) break;
             if (!b.IsMale)   continue;
             if (b.CurrentState != "Idle") continue;
-            if (TryReserveWorker(b))
-                b.AssignToConstruction(this);
+            var cell = TryReserveWorker(b);
+            if (cell != null)
+                b.AssignToConstruction(this, cell);
         }
     }
 }

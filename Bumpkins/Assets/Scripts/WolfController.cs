@@ -68,7 +68,7 @@ public class WolfController : MonoBehaviour
 
         // Iso sort order: -(col+row) = -y/isoHalfH.
         // +50 ensures wolf always renders on top of all grass/terrain (max grass sortOrder = 0).
-        _sr.sortingOrder = Mathf.RoundToInt(-transform.position.y / 0.256f) + 50;
+        _sr.sortingOrder = Mathf.RoundToInt(-transform.position.y / 0.768f) + 50;
     }
 
     // ---- Roaming ----

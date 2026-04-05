@@ -33,6 +33,7 @@ public class BumpkinController : MonoBehaviour
     private ChickenAnimator _targetChicken;
     private BuildingTag     _targetHouse;   // voor makeBaby
     private ConstructionSite _targetSite;   // voor bouwen
+    private WorkCell          _targetWorkCell;  // specific cell assigned at that site
 
     public bool IsMale   => bumpkinType == BumpkinType.Male;
     public bool IsFemale => bumpkinType == BumpkinType.Female;
@@ -87,11 +88,13 @@ public class BumpkinController : MonoBehaviour
     }
 
     // ---- Called when assigned to a ConstructionSite ----
-    public void AssignToConstruction(ConstructionSite site)
+    public void AssignToConstruction(ConstructionSite site, WorkCell cell)
     {
-        _targetSite = site;
-        _target     = site.WorkPosition;
-        _moving     = true;
+        _targetSite     = site;
+        _targetWorkCell = cell;
+        // Walk near the cell centre; small random offset so bumpkin doesn't snap exactly onto it
+        _target = (Vector2)cell.transform.position + Random.insideUnitCircle * 0.2f;
+        _moving = true;
         SetStateRaw("WalkingToConstruction");
     }
 
@@ -332,17 +335,21 @@ public class BumpkinController : MonoBehaviour
     private IEnumerator DoConstruction()
     {
         var site = _targetSite;
+        var cell = _targetWorkCell;
         yield return new WaitForSeconds(site != null ? site.workDuration : 4f);
         if (site != null && site.CurrentStage != ConstructionSite.Stage.Done)
-            site.DeliverWork();
-        _targetSite = null;
+            site.DeliverWork(cell);
+        else
+            cell?.Release();
+        _targetWorkCell = null;
+        _targetSite     = null;
         SetState("Idle");
     }
 
     // ---- Damage ----
     public void TakeDamage(string reason = "unknown")
     {
-        Debug.LogWarning($"[Bumpkin:{bumpkinType}] {name} died — reason: {reason}");
+        Debug.LogWarning($"[Bumpkin:{bumpkinType}] {name} died — reason: {reason} — pos: {transform.position}");
         StopAllCoroutines();
         _targetNode?.Release();
         _moving = false;
@@ -399,10 +406,14 @@ public class BumpkinController : MonoBehaviour
                 float d = Vector2.Distance(transform.position, s.transform.position);
                 if (d < bestDist) { bestDist = d; bestSite = s; }
             }
-            if (bestSite != null && bestSite.TryReserveWorker(this))
+            if (bestSite != null)
             {
-                AssignToConstruction(bestSite);
-                return true;
+                var cell = bestSite.TryReserveWorker(this);
+                if (cell != null)
+                {
+                    AssignToConstruction(bestSite, cell);
+                    return true;
+                }
             }
         }
 

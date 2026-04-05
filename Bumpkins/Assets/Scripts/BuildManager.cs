@@ -428,6 +428,7 @@ public class BuildManager : MonoBehaviour
         {
             var site = root.AddComponent<ConstructionSite>();
             site.buildingType = type;
+            site.InitWorkCells(gridPos, _layout);
 
             // House/Toolshed/Mill/Farm: verbind met dichtstbijzijnde weg via deur-positie
             if (type == BuildingType.House)

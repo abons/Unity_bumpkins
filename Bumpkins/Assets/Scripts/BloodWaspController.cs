@@ -59,7 +59,7 @@ public class BloodWaspController : MonoBehaviour
             case State.Hunting: UpdateHunting(); break;
         }
 
-        _sr.sortingOrder = Mathf.RoundToInt(-transform.position.y / 0.256f) + 50;
+        _sr.sortingOrder = Mathf.RoundToInt(-transform.position.y / 0.768f) + 50;
     }
 
     private void UpdateRoaming()
@@ -135,7 +135,9 @@ public class BloodWaspController : MonoBehaviour
 
     private void PickNewRoamTarget()
     {
-        _roamTarget    = new Vector2(Random.Range(-8f, 10f), Random.Range(0.5f, 8.5f));
+        // NE quadrant of the 48×36 grid. BloodWasp spawns at tile (44,33) ≈ world (16.5, 59.1).
+        // Bumpkin starts are near world (3–6, 34–35); keeping y ≥ 42 clears the 6-unit hunt radius.
+        _roamTarget    = new Vector2(Random.Range(8f, 25f), Random.Range(42f, 62f));
         _roamWaitTimer = Random.Range(0.5f, 2f);
     }
 

@@ -121,7 +121,7 @@ public class BumpkinAnimator : MonoBehaviour
                 break;
 
             case "Constructing":
-                SetSprite(_sprHarvest);  // bouwen = dezelfde hack-animatie als oogsten
+                SetSprite(_sprIdle);
                 break;
 
             case "WalkingToDropOff":
