@@ -117,7 +117,7 @@ public class WolfController : MonoBehaviour
         {
             var bumpkin = _target.GetComponent<BumpkinController>();
             if (bumpkin != null)
-                bumpkin.TakeDamage();
+                bumpkin.TakeDamage("wolf");
             else
                 Destroy(_target.gameObject); // cow or other animal
             _target = null;

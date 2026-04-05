@@ -98,7 +98,7 @@ public class BumpkinController : MonoBehaviour
     void Start()
     {
         if (!isChild)
-            StartCoroutine(AgeToElder(60f));
+            StartCoroutine(AgeToElder(300f));
     }
 
     private IEnumerator AgeToElder(float seconds)
@@ -123,7 +123,7 @@ public class BumpkinController : MonoBehaviour
     {
         yield return new WaitForSeconds(seconds);
         if (!IsDead)
-            TakeDamage();
+            TakeDamage("old age");
     }
 
     // How fast this bumpkin actually moves (half speed for elders)
@@ -340,8 +340,9 @@ public class BumpkinController : MonoBehaviour
     }
 
     // ---- Damage ----
-    public void TakeDamage()
+    public void TakeDamage(string reason = "unknown")
     {
+        Debug.LogWarning($"[Bumpkin:{bumpkinType}] {name} died — reason: {reason}");
         StopAllCoroutines();
         _targetNode?.Release();
         _moving = false;

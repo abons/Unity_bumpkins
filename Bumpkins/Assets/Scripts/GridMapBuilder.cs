@@ -167,9 +167,6 @@ public class GridMapBuilder : MonoBehaviour
             var grassGo = MakeSpriteFill("Terrain/Grass", center, tileVec, parent, sOrder)
                        ?? MakePlaceholder(TileColor(TileType.Grass), center, tileVec, parent, sOrder);
             grassGo.name = $"Grass_{col}_{row}";
-            // Water tiles: tint the base blue so sandhill transparency shows water not grass
-            if (tile == TileType.Water && grassGo.TryGetComponent<SpriteRenderer>(out var baseSr))
-                baseSr.color = new Color(0.15f, 0.45f, 0.85f);
 
             // Road: road sprite boven het gras, met juiste rotatie/flip
             if (tile == TileType.Road)
@@ -203,20 +200,32 @@ public class GridMapBuilder : MonoBehaviour
                 // Andere niet-gras tiles (Rock, Water etc.) boven het gras
                 if (tile == TileType.Water)
                 {
-                    // Skip corner tiles — they sit at the intersection of two edges and no rotation fits
+                    // Skip all 4 grid corners — no single rotation fits both edges
                     bool isCorner = (row == 0 || row == layout.rows - 1) &&
                                     (col == 0 || col == layout.cols - 1);
                     if (isCorner) { continue; }
 
                     float isoAngle = Mathf.Atan2(layout.isoHalfH, layout.isoHalfW) * Mathf.Rad2Deg;
-                    float zRot = 0f;
-                    if      (row == 0)                    zRot = -153f;             // SE edge
-                    else if (row == layout.rows - 1)      zRot =   28f;             // NW edge
-                    else if (col == 0)                    zRot = 180f - isoAngle;   // SW edge ≈153° (perp outward normal)
-                    else if (col == layout.cols - 1)      zRot =      - isoAngle;   // NE edge ≈-27° (perp outward normal)
+                    float zRot = row == 0               ? -153f
+                               : row == layout.rows - 1 ?   28f
+                               : col == 0               ? 180f - isoAngle
+                               :                              - isoAngle;
 
-                    var waterGo = MakeSpriteFill("Terrain/sandhill", center, tileVec, parent, sOrder + 1)
-                               ?? MakePlaceholder(TileColor(TileType.Water), center, tileVec, parent, sOrder + 1);
+                    float W = layout.isoHalfW, H = layout.isoHalfH;
+                    Vector3 backOffset = col == 0               ? new Vector3(-W * (2f/3f),  H * Mathf.Sqrt(2f), 0f)
+                                       : col == layout.cols - 1 ? new Vector3( W * (2f/3f), -H * Mathf.Sqrt(2f), 0f)
+                                       : row == 0               ? new Vector3( W * (2f/3f),  H * Mathf.Sqrt(2f), 0f)
+                                       :                          new Vector3(-W * (2f/3f), -H * Mathf.Sqrt(2f), 0f);
+
+                    // Back layer: sandhill +180° shifted outward — water side covers the grass zone
+                    var waterBack = MakeSpriteFill("Terrain/sandhill", center + backOffset, tileVec, parent, sOrder + 1)
+                                 ?? MakePlaceholder(TileColor(TileType.Water), center + backOffset, tileVec, parent, sOrder + 1);
+                    waterBack.transform.rotation = Quaternion.Euler(0f, 0f, zRot + 180f);
+                    waterBack.name = $"Tile_{col}_{row}_water_back";
+
+                    // Front layer: sandhill at correct rotation — shore transition on top
+                    var waterGo = MakeSpriteFill("Terrain/sandhill", center, tileVec, parent, sOrder + 2)
+                               ?? MakePlaceholder(TileColor(TileType.Water), center, tileVec, parent, sOrder + 2);
                     waterGo.transform.rotation = Quaternion.Euler(0f, 0f, zRot);
                     waterGo.name = $"Tile_{col}_{row}_{tile}";
                 }

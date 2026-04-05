@@ -108,7 +108,7 @@ public class OgreController : MonoBehaviour
         {
             var bumpkin = _target.GetComponent<BumpkinController>();
             if (bumpkin != null)
-                bumpkin.TakeDamage();
+                bumpkin.TakeDamage("ogre");
             else
                 Destroy(_target.gameObject);
             _target = null;

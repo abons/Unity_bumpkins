@@ -102,7 +102,7 @@ public class BloodWaspController : MonoBehaviour
         {
             var bumpkin = _target.GetComponent<BumpkinController>();
             if (bumpkin != null)
-                bumpkin.TakeDamage();
+                bumpkin.TakeDamage("blood wasp");
             _target = null;
         }
 

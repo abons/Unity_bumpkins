@@ -108,7 +108,7 @@ public class GiantController : MonoBehaviour
         {
             var bumpkin = _target.GetComponent<BumpkinController>();
             if (bumpkin != null)
-                bumpkin.TakeDamage();
+                bumpkin.TakeDamage("giant");
             else
                 Destroy(_target.gameObject);
             _target = null;

@@ -105,7 +105,7 @@ public class ZombieController : MonoBehaviour
         {
             var bumpkin = _target.GetComponent<BumpkinController>();
             if (bumpkin != null)
-                bumpkin.TakeDamage();
+                bumpkin.TakeDamage("zombie");
             _target = null;
         }
 

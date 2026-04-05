@@ -105,7 +105,7 @@ public class BatController : MonoBehaviour
         {
             var bumpkin = _target.GetComponent<BumpkinController>();
             if (bumpkin != null)
-                bumpkin.TakeDamage();
+                bumpkin.TakeDamage("bat");
             _target = null;
         }
 
