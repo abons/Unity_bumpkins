@@ -10,9 +10,9 @@ using UnityEditor;
 /// </summary>
 public static class Map1LayoutGenerator
 {
-    // Grid from analysis: 24 cols × 18 rows, origin bottom-left
-    private const int COLS = 24;
-    private const int ROWS = 18;
+    // Grid: 48 cols × 36 rows — doubled to push enemies further from center
+    private const int COLS = 48;
+    private const int ROWS = 36;
 
     [MenuItem("Tools/Bumpkins/Generate Map1 Layout")]
     public static void Generate()
@@ -33,35 +33,29 @@ public static class Map1LayoutGenerator
         // Start with all grass
         data.terrain = new TileType[COLS * ROWS];
 
-        // Roads (from ASCII analysis)
-        // Horizontal road: row 12, cols 12-19
-        SetRow(data, row: 12, colStart: 12, colEnd: 19, TileType.Road);
-        // Horizontal road: row 9, cols 12-19
-        SetRow(data, row: 9,  colStart: 12, colEnd: 19, TileType.Road);
-        // Vertical road: col 19, rows 9-12
-        SetCol(data, col: 19, rowStart: 9, rowEnd: 12, TileType.Road);
+        // Central crossroads at map center (24, 18) — 4 arms for buildings to connect to
+        // Horizontal: row 18, cols 22-26
+        SetRow(data, row: 18, colStart: 22, colEnd: 26, TileType.Road);
+        // Vertical: col 24, rows 16-20
+        SetCol(data, col: 24, rowStart: 16, rowEnd:  20, TileType.Road);
 
-        // Rock terrain
-        SetRect(data, col: 4, row: 5, w: 2, h: 2, TileType.Rock);
+        // Rock terrain (proportionally scaled from original)
+        SetRect(data, col: 8, row: 10, w: 2, h: 2, TileType.Rock);
+
+        // Shore border — 1 tile of sandhill around the island edge
+        SetRect(data, col:  0, row:  0, w: COLS, h: 1,    TileType.Water); // south
+        SetRect(data, col:  0, row: 35, w: COLS, h: 1,    TileType.Water); // north
+        SetRect(data, col:  0, row:  0, w: 1,    h: ROWS, TileType.Water); // west
+        SetRect(data, col: 47, row:  0, w: 1,    h: ROWS, TileType.Water); // east
 
         // ---- Buildings ----
         //  Farm = enkel drop-off gebouw voor tarwe én melk (Farm + Dairy samengevoegd)
         data.buildings = new BuildingEntry[]
         {
-            new BuildingEntry { type = BuildingType.Mill,        position = new Vector2Int(12, 13), size = new Vector2Int(3, 2) },
-            new BuildingEntry { type = BuildingType.Farm,        position = new Vector2Int( 7,  7), size = new Vector2Int(3, 3) }, // drop-off
-            new BuildingEntry { type = BuildingType.WheatField,  position = new Vector2Int(10,  7), size = new Vector2Int(1, 1) },
-            new BuildingEntry { type = BuildingType.WheatField,  position = new Vector2Int(13,  7), size = new Vector2Int(1, 1) },
-            new BuildingEntry { type = BuildingType.Cow,         position = new Vector2Int(14,  1), size = new Vector2Int(4, 3) },
-            new BuildingEntry { type = BuildingType.ChickenCoop, position = new Vector2Int(17, 10), size = new Vector2Int(1, 1) },
-            new BuildingEntry { type = BuildingType.ChickenCoop, position = new Vector2Int(20,  9), size = new Vector2Int(1, 1) },
-            new BuildingEntry { type = BuildingType.ChickenCoop, position = new Vector2Int(17, 11), size = new Vector2Int(1, 1) },
-            new BuildingEntry { type = BuildingType.House,       position = new Vector2Int( 8, 13), size = new Vector2Int(2, 2) },
-            new BuildingEntry { type = BuildingType.House,       position = new Vector2Int( 6, 13), size = new Vector2Int(2, 2) },
-            new BuildingEntry { type = BuildingType.Toolshed,    position = new Vector2Int( 9,  5), size = new Vector2Int(2, 2) },
-            new BuildingEntry { type = BuildingType.Rockpile,    position = new Vector2Int( 4,  5), size = new Vector2Int(2, 2) },
-            new BuildingEntry { type = BuildingType.Woodpile,    position = new Vector2Int(18,  5), size = new Vector2Int(2, 2) },
-            new BuildingEntry { type = BuildingType.Campfire,    position = new Vector2Int(13, 11), size = new Vector2Int(1, 1) },
+            new BuildingEntry { type = BuildingType.Cow,          position = new Vector2Int(27, 16), size = new Vector2Int(4, 3) },
+            new BuildingEntry { type = BuildingType.Rockpile,    position = new Vector2Int( 8, 10), size = new Vector2Int(2, 2) },
+            new BuildingEntry { type = BuildingType.Woodpile,    position = new Vector2Int(36, 10), size = new Vector2Int(2, 2) },
+            new BuildingEntry { type = BuildingType.Campfire,    position = new Vector2Int(25, 22), size = new Vector2Int(1, 1) },
         };
 
         EditorUtility.SetDirty(data);

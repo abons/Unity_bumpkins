@@ -47,7 +47,7 @@ public class GridMapBuilder : MonoBehaviour
     private void SpawnBloodWasp()
     {
         var go = new GameObject("BloodWasp");
-        go.transform.position = layout.TileToWorld(22, 8);
+        go.transform.position = layout.TileToWorld(44, 33);
         var sr = go.AddComponent<SpriteRenderer>();
         var sp = Resources.Load<Sprite>("Sprites/Animals/bloodwsp");
         if (sp != null) { sr.sprite = sp; go.transform.localScale = new Vector3(3f, 3f, 1f); }
@@ -60,7 +60,7 @@ public class GridMapBuilder : MonoBehaviour
     private void SpawnBat()
     {
         var go = new GameObject("Bat");
-        go.transform.position = layout.TileToWorld(20, 2);
+        go.transform.position = layout.TileToWorld(38, 2);
         var sr = go.AddComponent<SpriteRenderer>();
         var sp = Resources.Load<Sprite>("Sprites/Animals/bat");
         if (sp != null) { sr.sprite = sp; go.transform.localScale = new Vector3(3f, 3f, 1f); }
@@ -73,7 +73,7 @@ public class GridMapBuilder : MonoBehaviour
     private void SpawnOgre()
     {
         var go = new GameObject("Ogre");
-        go.transform.position = layout.TileToWorld(20, 15);
+        go.transform.position = layout.TileToWorld(45, 30);
         var sr = go.AddComponent<SpriteRenderer>();
         var sp = Resources.Load<Sprite>("Sprites/Animals/ogrestil");
         if (sp != null) { sr.sprite = sp; go.transform.localScale = new Vector3(3f, 3f, 1f); }
@@ -86,7 +86,7 @@ public class GridMapBuilder : MonoBehaviour
     private void SpawnZombie()
     {
         var go = new GameObject("Zombie");
-        go.transform.position = layout.TileToWorld(1, 15);
+        go.transform.position = layout.TileToWorld(2, 30);
         var sr = go.AddComponent<SpriteRenderer>();
         var sp = Resources.Load<Sprite>("Sprites/Animals/zombie");
         if (sp != null) { sr.sprite = sp; go.transform.localScale = new Vector3(3f, 3f, 1f); }
@@ -99,7 +99,7 @@ public class GridMapBuilder : MonoBehaviour
     private void SpawnGiant()
     {
         var go = new GameObject("Giant");
-        go.transform.position = layout.TileToWorld(10, 1);
+        go.transform.position = layout.TileToWorld(24, 2);
         var sr = go.AddComponent<SpriteRenderer>();
         var sp = Resources.Load<Sprite>("Sprites/Animals/gianstil");
         if (sp != null) { sr.sprite = sp; go.transform.localScale = new Vector3(3f, 3f, 1f); }
@@ -112,7 +112,7 @@ public class GridMapBuilder : MonoBehaviour
     private void SpawnWasp()
     {
         var waspGo = new GameObject("Wasp");
-        waspGo.transform.position = layout.TileToWorld(3, 2);
+        waspGo.transform.position = layout.TileToWorld(10, 2);
 
         var sr = waspGo.AddComponent<SpriteRenderer>();
         var sp = Resources.Load<Sprite>("Sprites/Animals/wasp");
@@ -132,7 +132,7 @@ public class GridMapBuilder : MonoBehaviour
     private void SpawnWolf()
     {
         var wolfGo = new GameObject("Wolf");
-        wolfGo.transform.position = layout.TileToWorld(1, 8);
+        wolfGo.transform.position = layout.TileToWorld(2, 18);
 
         var sr = wolfGo.AddComponent<SpriteRenderer>();
         var sp = Resources.Load<Sprite>("Sprites/Animals/wolfstil");
@@ -167,6 +167,9 @@ public class GridMapBuilder : MonoBehaviour
             var grassGo = MakeSpriteFill("Terrain/Grass", center, tileVec, parent, sOrder)
                        ?? MakePlaceholder(TileColor(TileType.Grass), center, tileVec, parent, sOrder);
             grassGo.name = $"Grass_{col}_{row}";
+            // Water tiles: tint the base blue so sandhill transparency shows water not grass
+            if (tile == TileType.Water && grassGo.TryGetComponent<SpriteRenderer>(out var baseSr))
+                baseSr.color = new Color(0.15f, 0.45f, 0.85f);
 
             // Road: road sprite boven het gras, met juiste rotatie/flip
             if (tile == TileType.Road)
@@ -198,20 +201,42 @@ public class GridMapBuilder : MonoBehaviour
             else if (tile != TileType.Grass)
             {
                 // Andere niet-gras tiles (Rock, Water etc.) boven het gras
-                var prefab = TilePrefab(tile);
-                GameObject go;
-                if (prefab != null)
+                if (tile == TileType.Water)
                 {
-                    go = Instantiate(prefab, center, Quaternion.identity, parent);
-                    if (go.TryGetComponent<SpriteRenderer>(out var psr)) psr.sortingOrder = sOrder + 1;
+                    // Skip corner tiles — they sit at the intersection of two edges and no rotation fits
+                    bool isCorner = (row == 0 || row == layout.rows - 1) &&
+                                    (col == 0 || col == layout.cols - 1);
+                    if (isCorner) { continue; }
+
+                    float isoAngle = Mathf.Atan2(layout.isoHalfH, layout.isoHalfW) * Mathf.Rad2Deg;
+                    float zRot = 0f;
+                    if      (row == 0)                    zRot = -153f;             // SE edge
+                    else if (row == layout.rows - 1)      zRot =   28f;             // NW edge
+                    else if (col == 0)                    zRot = 180f - isoAngle;   // SW edge ≈153° (perp outward normal)
+                    else if (col == layout.cols - 1)      zRot =      - isoAngle;   // NE edge ≈-27° (perp outward normal)
+
+                    var waterGo = MakeSpriteFill("Terrain/sandhill", center, tileVec, parent, sOrder + 1)
+                               ?? MakePlaceholder(TileColor(TileType.Water), center, tileVec, parent, sOrder + 1);
+                    waterGo.transform.rotation = Quaternion.Euler(0f, 0f, zRot);
+                    waterGo.name = $"Tile_{col}_{row}_{tile}";
                 }
                 else
                 {
-                    var resName = TileResourceName(tile);
-                    go = (resName != null ? MakeSprite(resName, center, tileVec, parent, sOrder + 1) : null)
-                      ?? MakePlaceholder(TileColor(tile), center, tileVec, parent, sOrder + 1);
+                    var prefab = TilePrefab(tile);
+                    GameObject go;
+                    if (prefab != null)
+                    {
+                        go = Instantiate(prefab, center, Quaternion.identity, parent);
+                        if (go.TryGetComponent<SpriteRenderer>(out var psr)) psr.sortingOrder = sOrder + 1;
+                    }
+                    else
+                    {
+                        var resName = TileResourceName(tile);
+                        go = (resName != null ? MakeSprite(resName, center, tileVec, parent, sOrder + 1) : null)
+                          ?? MakePlaceholder(TileColor(tile), center, tileVec, parent, sOrder + 1);
+                    }
+                    go.name = $"Tile_{col}_{row}_{tile}";
                 }
-                go.name = $"Tile_{col}_{row}_{tile}";
             }
         }
     }
@@ -451,6 +476,7 @@ public class GridMapBuilder : MonoBehaviour
         TileType.FarmPlot => "crops",
         TileType.Rock     => "Terrain/rock01",
         TileType.Wood     => "logs",
+        TileType.Water    => "Terrain/sandhill",
         _                 => null,
     };
 

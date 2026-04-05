@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: a519a5ac5377a684f911289d34158a69
+guid: 20a672e3327f12145a53beeb77fa1eba
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -395682246753914490
-    second: elderf_0
+      213: 829015905643455919
+    second: sandhill_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -113,13 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: elderf_0
+      name: sandhill_0
       rect:
         serializedVersion: 2
-        x: 11
-        y: 1
-        width: 20
-        height: 26
+        x: 0
+        y: 0
+        width: 79
+        height: 31
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 681fd4ec711428af0800000000000000
-      internalID: -395682246753914490
+      spriteID: fa5e609e291418b00800000000000000
+      internalID: 829015905643455919
       vertices: []
       indices: 
       edges: []
@@ -148,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      elderf_0: -395682246753914490
+      sandhill_0: 829015905643455919
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

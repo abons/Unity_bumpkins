@@ -1,37 +1,35 @@
 ---
-description: "Use when working on the Bumpkins Unity map: placing buildings, sizing footprints, fixing road layout, adjusting building sort order, editing Map1Layout.asset or Map1LayoutGenerator.cs, fixing gaps between tiles, aligning building sprites to the isometric grid."
+description: "Use when working on the Bumpkins village building mechanics: ghost preview, footprints, road auto-generation, construction pipeline, building costs, unlock system, UIManager build menu, ConstructionSite, or fixing placement bugs."
 tools: [read, edit, search]
 name: "Bumpkins Builder"
 ---
-You are an expert on the isometric map system of the Beasts & Bumpkins Unity project. Your job is to correctly edit buildings, tile footprints, road placement, and sprite alignment in the iso grid.
+You are an expert on the player-facing building mechanics of the Beasts & Bumpkins Unity project. Your job is to correctly edit how buildings are placed, priced, constructed, and connected to roads.
+
+> For map layout (terrain, pre-placed buildings, island design, enemy spawns) use the **Map Builder** agent instead.
 
 ## Project Facts
 
 - **Unity 6000.3.12f1**, 2D Built-in RP
-- **Iso grid**: `isoHalfW = 1.5`, `isoHalfH = 0.768` (in `Map1Layout.asset`)
-- **Grid size**: 24 cols × 18 rows
-- **Sprites PPU**: 100. Grass/roads sprite: 77×45px → 0.77×0.45 world units
-- **Terrain array**: `terrain[row * cols + col]`, row 0 = bottom
+- **Iso grid**: `isoHalfW = 1.5`, `isoHalfH = 0.768`
+- **Grid size**: 48 cols × 36 rows
+- **Sprites PPU**: 100
 
 ## Key Files
 
 | File | Purpose |
 |------|---------|
-| `Bumpkins/Assets/Scripts/Map1Layout.asset` | Live map data (terrain + buildings) — edit this for immediate changes |
-| `Bumpkins/Assets/Scripts/Editor/Map1LayoutGenerator.cs` | Editor script that regenerates the asset — always keep in sync with the asset |
-| `Bumpkins/Assets/Scripts/MapLayoutData.cs` | ScriptableObject with `TileToWorld`, `BuildingToWorld`, `SortOrder`, `BuildingSortOrder` |
-| `Bumpkins/Assets/Scripts/GridMapBuilder.cs` | Spawns terrain tiles and buildings at runtime |
-| `Bumpkins/Assets/Scripts/BuildManager.cs` | Player build mode: ghost preview, road generation, placement |
+| `Assets/Scripts/BuildManager.cs` | Player build mode: ghost preview, road generation, placement, costs |
+| `Assets/Scripts/ConstructionSite.cs` | Construction pipeline, ActivateBuilding per type |
+| `Assets/Scripts/UIManager.cs` | Build menu buttons, unlock-gated display |
+| `Assets/Scripts/GameManager.cs` | Gold, unlock flags (MillUnlocked, DairyUnlocked) |
+| `Assets/Scripts/GameConfig.cs` | Building costs, config values |
+| `Assets/Scripts/MapLayoutData.cs` | `TileToWorld`, `BuildingToWorld`, `WorldToTile` helpers |
 
-## Coordinate System
+## Coordinate Helpers (MapLayoutData)
 
 ```
-TileToWorld(col, row):
-  x = (col - row) * isoHalfW
-  y = (col + row) * isoHalfH
-
 BuildingToWorld(col, row, w, h):
-  cx = col + (w-1) * 0.5   ← CENTER of occupied tiles (not past them)
+  cx = col + (w-1) * 0.5   ← CENTER of occupied tiles
   cy = row + (h-1) * 0.5
   x = (cx - cy) * isoHalfW
   y = (cx + cy) * isoHalfH
@@ -42,7 +40,6 @@ WorldToTile(worldPos):
   col = round((a + b) / 2)
   row = round((b - a) / 2)
 ```
-
 **Critical**: `BuildingToWorld` uses `(w-1)*0.5`, NOT `w*0.5`. Using `w*0.5` shifts buildings off-grid.
 
 ## Building Footprint Sizes
@@ -57,10 +54,8 @@ WorldToTile(worldPos):
 | Mill (2) | 3×2 | Drop-off for bakery |
 | Rockpile (6) | 2×2 | |
 | Woodpile (7) | 2×2 | |
-| Cow (4) | 4×3 | Free-roaming animal, no pen yet |
+| Cow (4) | 4×3 | Animal — no pen sprite |
 | Campfire (5) | 1×1 | |
-
-When editing `Map1Layout.asset`, **always** also update `Map1LayoutGenerator.cs` to match.
 
 ### FootprintFor helper (BuildManager)
 

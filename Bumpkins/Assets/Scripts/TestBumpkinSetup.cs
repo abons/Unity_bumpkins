@@ -37,10 +37,10 @@ public class TestBumpkinSetup : MonoBehaviour
             bldMgr.AddComponent<BuildManager>();
         }
 
-        // Campfire staat op iso-grid (13,11) → world ≈ (1.0, 6.1)
+        // Campfire staat op iso-grid (25,22) → world ≈ (4.5, 36.1)
         // Bumpkins spawnen iets voor het kampvuur (lagere y = dichter bij camera)
-        var male = SpawnBumpkin("Bumpkin_Male",   new Vector3(2.1f, 17.1f, 0f), BumpkinController.BumpkinType.Male,   new Color(0.3f, 0.6f, 1f));
-                   SpawnBumpkin("Bumpkin_Female", new Vector3(3.9f, 16.8f, 0f), BumpkinController.BumpkinType.Female, new Color(1f, 0.6f, 0.8f));
+        var male = SpawnBumpkin("Bumpkin_Male",   new Vector3(3.0f, 35.0f, 0f), BumpkinController.BumpkinType.Male,   new Color(0.3f, 0.6f, 1f));
+                   SpawnBumpkin("Bumpkin_Female", new Vector3(6.0f, 34.7f, 0f), BumpkinController.BumpkinType.Female, new Color(1f, 0.6f, 0.8f));
 
         // Pre-select male bumpkin
         SelectionManager.Instance?.Select(male);
