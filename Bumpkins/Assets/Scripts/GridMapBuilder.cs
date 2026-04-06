@@ -18,13 +18,11 @@ public class GridMapBuilder : MonoBehaviour
     public GameObject waterPrefab;
 
     [Header("Building Prefabs")]
-    public GameObject townHallPrefab;
     public GameObject millPrefab;
     public GameObject cowPrefab;
     public GameObject campfirePrefab;
     public GameObject rockpilePrefab;
     public GameObject woodpilePrefab;
-    public GameObject bakeryPrefab;
     public GameObject dairyPrefab;
     public GameObject chickenCoopPrefab;
     public GameObject housePrefab;
@@ -45,6 +43,7 @@ public class GridMapBuilder : MonoBehaviour
         if (layout == null) { Debug.LogError("[GridMapBuilder] No layout assigned!"); return; }
         BuildTerrain();
         BuildBuildings();
+        PatchDoorExitRoads();
         SpawnEnemies();
         FindFirstObjectByType<CameraController>()?.AdaptToLayout(layout);
     }
@@ -68,6 +67,7 @@ public class GridMapBuilder : MonoBehaviour
 
         BuildTerrain();
         BuildBuildings();
+        PatchDoorExitRoads();
         SpawnEnemies();
         FindFirstObjectByType<CameraController>()?.AdaptToLayout(layout);
     }
@@ -257,7 +257,7 @@ public class GridMapBuilder : MonoBehaviour
             // Visual child
             var visual = new GameObject("Visual");
             visual.transform.SetParent(root.transform);
-            visual.transform.localPosition = Vector3.zero;
+            visual.transform.localPosition = b.type == BuildingType.House ? new Vector3(0.18f, -0.86f, 0f) : Vector3.zero;
 
             var prefab = BuildingPrefab(b.type);
             if (prefab != null)
@@ -270,9 +270,7 @@ public class GridMapBuilder : MonoBehaviour
             {
                 var sr = visual.AddComponent<SpriteRenderer>();
                 sr.sortingOrder = bSort;
-                var spritePath = b.type == BuildingType.Bakery
-                    ? $"{GraphicsQuality.SpritePath}/Buildings/Mill"
-                    : b.type == BuildingType.Woodpile
+                var spritePath = b.type == BuildingType.Woodpile
                     ? $"{GraphicsQuality.SpritePath}/Buildings/Logpile"
                     : $"{GraphicsQuality.SpritePath}/Buildings/{b.type}";
                 var sp = Resources.Load<Sprite>(spritePath);
@@ -327,7 +325,7 @@ public class GridMapBuilder : MonoBehaviour
             {
                 visual.AddComponent<MillAnimator>();
                 var dropOff = root.AddComponent<DropOffNode>();
-                dropOff.dropOffType = DropOffNode.DropOffType.Bakery;
+                dropOff.dropOffType = DropOffNode.DropOffType.Mill;
             }
 
             // ProductionNode op WheatField en Cow
@@ -362,6 +360,48 @@ public class GridMapBuilder : MonoBehaviour
                 var anim = cowGo.AddComponent<CowAnimator>();
                 anim.wanderBounds = new Vector2(size.x * 0.35f, size.y * 0.35f);
             }
+        }
+    }
+
+    // ---- Post-load road patch ----
+
+    /// <summary>
+    /// Applies flipY=true to the door-exit road sprites of any pre-placed House buildings
+    /// loaded from the map layout asset.  BuildManager does this for runtime-placed houses;
+    /// this method handles the map-load path where SpawnRoadToNearestRoad is never called.
+    /// </summary>
+    private void PatchDoorExitRoads()
+    {
+        if (layout.buildings == null) return;
+        var terrainParent = transform.Find("Terrain");
+        if (terrainParent == null) return;
+
+        foreach (var b in layout.buildings)
+        {
+            if (b.type != BuildingType.House) continue;
+
+            // House door exit: SW step = (col - 1, row)
+            int exitCol = b.position.x - 1;
+            int exitRow = b.position.y;
+
+            var rt = terrainParent.Find($"Road_{exitCol}_{exitRow}");
+            if (rt  != null && rt .TryGetComponent<SpriteRenderer>(out var sr )) { sr .flipY = true; }
+            var rtr = terrainParent.Find($"RoadR_{exitCol}_{exitRow}");
+            if (rtr != null && rtr.TryGetComponent<SpriteRenderer>(out var rsr)) { rsr.flipY = true; }
+        }
+
+        // Dairy door exit: SW step = (col - 1, row) — column-axis (NE-SW), needs flipY=true
+        foreach (var b in layout.buildings)
+        {
+            if (b.type != BuildingType.Dairy) continue;
+
+            int exitCol = b.position.x - 1;
+            int exitRow = b.position.y;
+
+            var rt = terrainParent.Find($"Road_{exitCol}_{exitRow}");
+            if (rt  != null && rt .TryGetComponent<SpriteRenderer>(out var sr )) sr .flipY = true;
+            var rtr = terrainParent.Find($"RoadR_{exitCol}_{exitRow}");
+            if (rtr != null && rtr.TryGetComponent<SpriteRenderer>(out var rsr)) rsr.flipY = true;
         }
     }
 
@@ -463,13 +503,11 @@ public class GridMapBuilder : MonoBehaviour
 
     private static Color BuildingColor(BuildingType t) => t switch
     {
-        BuildingType.TownHall    => new Color(0.8f, 0.2f, 0.2f),
         BuildingType.Mill        => new Color(0.8f, 0.6f, 0.1f),
         BuildingType.Cow         => new Color(0.9f, 0.8f, 0.5f),
         BuildingType.Campfire    => new Color(1.0f, 0.4f, 0.0f),
         BuildingType.Rockpile    => new Color(0.55f, 0.55f, 0.55f),
         BuildingType.Woodpile    => new Color(0.45f, 0.28f, 0.1f),
-        BuildingType.Bakery      => new Color(0.9f, 0.7f, 0.3f),
         BuildingType.Dairy       => new Color(0.9f, 0.9f, 0.9f),
         BuildingType.ChickenCoop => new Color(1.0f, 0.9f, 0.5f),
         BuildingType.House       => new Color(0.6f, 0.4f, 0.8f),
@@ -492,13 +530,11 @@ public class GridMapBuilder : MonoBehaviour
 
     private GameObject BuildingPrefab(BuildingType t) => t switch
     {
-        BuildingType.TownHall    => townHallPrefab,
         BuildingType.Mill        => millPrefab,
         BuildingType.Cow         => cowPrefab,
         BuildingType.Campfire    => campfirePrefab,
         BuildingType.Rockpile    => rockpilePrefab,
         BuildingType.Woodpile    => woodpilePrefab,
-        BuildingType.Bakery      => bakeryPrefab,
         BuildingType.Dairy       => dairyPrefab,
         BuildingType.ChickenCoop => chickenCoopPrefab,
         BuildingType.House       => housePrefab,

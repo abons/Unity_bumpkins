@@ -25,7 +25,7 @@ public class WorkCell : MonoBehaviour
     /// cellSize is the target world-space size (width x height) to fill — pass the
     /// iso cell dimensions so pick/saw match a 1x1 building cell visually.
     /// </summary>
-    public void Init(CellKind kind, Sprite idle, Sprite active, Sprite done, int sortOrder, Vector2 cellSize)
+    public void Init(CellKind kind, Sprite idle, Sprite active, Sprite done, int sortOrder, Vector2 cellSize, float scaleOverride = 0f)
     {
         Kind          = kind;
         _idleSprite   = idle;
@@ -43,7 +43,9 @@ public class WorkCell : MonoBehaviour
         if (idle != null)
         {
             _sr.sprite = idle;
-            float sc = Mathf.Min(cellSize.x / idle.bounds.size.x, cellSize.y / idle.bounds.size.y);
+            float sc = scaleOverride > 0f
+                ? scaleOverride
+                : Mathf.Min(cellSize.x / idle.bounds.size.x, cellSize.y / idle.bounds.size.y);
             vis.transform.localScale = new Vector3(sc, sc, 1f);
         }
         else
@@ -53,13 +55,19 @@ public class WorkCell : MonoBehaviour
         }
     }
 
-    /// <summary>Try to claim this cell. Returns false if already occupied or done.</summary>
+    /// <summary>Try to claim this cell. Returns false if already occupied or done.
+    /// The sprite stays idle until Activate() is called when the worker physically arrives.</summary>
     public bool TryOccupy()
     {
         if (IsOccupied || IsDone) return false;
         IsOccupied = true;
-        ApplySprite(_activeSprite, Color.white);
         return true;
+    }
+
+    /// <summary>Switch to the active sprite once the assigned worker has physically arrived at the cell.</summary>
+    public void Activate()
+    {
+        ApplySprite(_activeSprite, Color.white);
     }
 
     /// <summary>Release back to idle state after the worker finishes.</summary>

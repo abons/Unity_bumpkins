@@ -18,7 +18,7 @@ public class GameManager : MonoBehaviour
     public int EggStock    { get; private set; }
     public float Happiness { get; private set; }
 
-    // --- Wheat in storage (waiting for bakery) ---
+    // --- Wheat in storage (waiting for mill) ---
     public int WheatStored { get; private set; }
 
     // --- Building unlocks ---
@@ -70,13 +70,13 @@ public class GameManager : MonoBehaviour
         Debug.Log($"[GM] Milk: {Milk}");
     }
 
-    /// <summary>Called by Bakery/Mill when bumpkin drops off wheat.</summary>
-    public void ProcessWheatAtBakery(int wheatAmount)
+    /// <summary>Called by Mill when bumpkin drops off wheat.</summary>
+    public void ProcessWheatAtMill(int wheatAmount)
     {
         WheatStored = Mathf.Max(0, WheatStored - wheatAmount);
         int produced = wheatAmount * config.breadPerWheat;
         Bread += produced;
-        Debug.Log($"[GM] Bakery: {wheatAmount} wheat → +{produced} bread. Total bread: {Bread}");
+        Debug.Log($"[GM] Mill: {wheatAmount} wheat → +{produced} bread. Total bread: {Bread}");
     }
 
     // ---- Chicken ----

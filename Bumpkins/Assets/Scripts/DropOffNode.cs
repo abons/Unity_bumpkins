@@ -1,31 +1,31 @@
 using UnityEngine;
 
 /// <summary>
-/// Attach to Bakery/Mill or Dairy/Farm buildings.
+/// Attach to Mill or Dairy/Farm buildings.
 /// When a bumpkin arrives and delivers, production is triggered exactly once.
 /// </summary>
 public class DropOffNode : MonoBehaviour
 {
-    public enum DropOffType { Bakery, Dairy }
+    public enum DropOffType { Mill, Dairy }
 
     [Header("Settings")]
-    public DropOffType dropOffType = DropOffType.Bakery;
+    public DropOffType dropOffType = DropOffType.Mill;
 
     /// <summary>Called by BumpkinController.OnReachedTarget when the bumpkin arrives.</summary>
     public void Deliver(BumpkinController bumpkin)
     {
         switch (dropOffType)
         {
-            case DropOffType.Bakery:
+            case DropOffType.Mill:
                 int wheat = bumpkin.CarriedWheat;
                 if (wheat <= 0)
                 {
-                    Debug.Log("[DropOff:Bakery] Bumpkin has no wheat to deliver");
+                    Debug.Log("[DropOff:Mill] Bumpkin has no wheat to deliver");
                     return;
                 }
-                // Clear carried wheat first, then process at bakery
+                // Clear carried wheat first, then process at mill
                 bumpkin.PickUpWheat(-wheat);  // zero out
-                GameManager.Instance.ProcessWheatAtBakery(wheat);
+                GameManager.Instance.ProcessWheatAtMill(wheat);
                 break;
 
             case DropOffType.Dairy:

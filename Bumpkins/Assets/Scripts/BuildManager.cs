@@ -69,10 +69,10 @@ public class BuildManager : MonoBehaviour
     public void ExitBuildMode()
     {
         InBuildMode = false;
-        if (_ghost != null) Destroy(_ghost);
+        if (_ghost != null) { _ghost.SetActive(false); Destroy(_ghost); }
         _ghost   = null;
         _ghostSr = null;
-        if (_gridOverlay != null) Destroy(_gridOverlay);
+        if (_gridOverlay != null) { _gridOverlay.SetActive(false); Destroy(_gridOverlay); }
         _gridOverlay     = null;
         _tileHighlightSr = null;
         ClearGhostRoad();
@@ -88,13 +88,15 @@ public class BuildManager : MonoBehaviour
         int cost = CostFor(SelectedType);
         if (!GameManager.Instance.Buy(cost, SelectedType.ToString())) return;
 
-        // Mark occupied tiles based on building footprint
+        // Mark occupied tiles based on building footprint (with per-type offset)
         var (fpW, fpH) = FootprintFor(SelectedType);
+        var (ox, oy)   = FootprintOffsetFor(SelectedType);
         for (int dr = 0; dr < fpH; dr++)
         for (int dc = 0; dc < fpW; dc++)
-            _occupiedTiles.Add(new Vector2Int(gridPos.x + dc, gridPos.y + dr));
+            _occupiedTiles.Add(new Vector2Int(gridPos.x + ox + dc, gridPos.y + oy + dr));
 
         PlaceBuilding(gridPos, SelectedType);
+        ExitBuildMode();
     }
 
     public Vector2Int WorldToTile(Vector2 worldPos)
@@ -114,7 +116,7 @@ public class BuildManager : MonoBehaviour
         _ghost = new GameObject("GhostPreview");
         var visual = new GameObject("Visual");
         visual.transform.SetParent(_ghost.transform);
-        visual.transform.localPosition = Vector3.zero;
+        visual.transform.localPosition = type == BuildingType.House ? new Vector3(0.18f, -0.86f, 0f) : Vector3.zero;
 
         _ghostSr = visual.AddComponent<SpriteRenderer>();
         _ghostSr.sortingOrder = 50;
@@ -198,7 +200,7 @@ public class BuildManager : MonoBehaviour
 
     private void ClearGhostRoad()
     {
-        if (_ghostRoadParent != null) { Destroy(_ghostRoadParent); _ghostRoadParent = null; }
+        if (_ghostRoadParent != null) { _ghostRoadParent.SetActive(false); Destroy(_ghostRoadParent); _ghostRoadParent = null; }
     }
 
     private void BuildGhostRoad(Vector2Int gridPos)
@@ -206,11 +208,12 @@ public class BuildManager : MonoBehaviour
         Vector2Int from = DoorExit(SelectedType, gridPos);
 
         // Build set of tiles occupied by the ghost building itself so BFS avoids them
-        var (gw, gh) = FootprintFor(SelectedType);
-        var ghostTiles = new HashSet<Vector2Int>();
+        var (gw, gh)    = FootprintFor(SelectedType);
+        var (gox, goy)  = FootprintOffsetFor(SelectedType);
+        var ghostTiles  = new HashSet<Vector2Int>();
         for (int dr = 0; dr < gh; dr++)
         for (int dc = 0; dc < gw; dc++)
-            ghostTiles.Add(new Vector2Int(gridPos.x + dc, gridPos.y + dr));
+            ghostTiles.Add(new Vector2Int(gridPos.x + gox + dc, gridPos.y + goy + dr));
 
         var path = ComputeRoadPath(from, out Vector2Int junction, ghostTiles);
         if (path.Count == 0) return;
@@ -224,7 +227,7 @@ public class BuildManager : MonoBehaviour
 
         var sp = roadSp ?? MakeSquareSprite();
 
-        void SpawnGhostSprite(Vector2Int tile, bool flipY)
+        void SpawnGhostSprite(Vector2Int tile, bool flipY, bool flipX = false)
         {
             Vector3 pos = _layout.TileToWorld(tile.x, tile.y);
             pos.z = -0.3f;
@@ -239,20 +242,42 @@ public class BuildManager : MonoBehaviour
             sr.sprite       = sp;
             sr.sortingOrder = _layout.SortOrder(tile.x, tile.y) + 2;
             sr.color        = new Color(0.9f, 0.8f, 0.3f, 0.6f);
-            if (roadSp != null) sr.flipY = flipY;
+            if (roadSp != null) { sr.flipY = flipY; sr.flipX = flipX; }
         }
 
+        bool isHouseDoor    = SelectedType == BuildingType.House;
+        bool isMillDoor     = SelectedType == BuildingType.Mill;
+        bool isToolshedDoor = SelectedType == BuildingType.Toolshed;
+        bool isDairyDoor    = SelectedType == BuildingType.Dairy;
         for (int i = 0; i < path.Count; i++)
         {
             var (tile, flipY) = path[i];
             if (_layout.GetTile(tile.x, tile.y) == TileType.Road) continue;
-            SpawnGhostSprite(tile, flipY);
-            // Door exit (i==0) is always a corner: also spawn the house-side direction
-            if (i == 0)
-                SpawnGhostSprite(tile, !flipY);
-            // Mid-path corner: direction changes from previous tile
-            else if (path[i - 1].flipY != flipY)
-                SpawnGhostSprite(tile, !flipY);
+            if (i == 0 && isHouseDoor)
+            {
+                // House door: single Road_ sprite (flipY=true) — no RoadR crossroad
+                SpawnGhostSprite(tile, true);
+            }
+            else if (i == 0 && (isMillDoor || isToolshedDoor))
+            {
+                // Mill/Toolshed door (SE exit, pure -row): single Road_ sprite (flipY=false) — no RoadR crossroad
+                SpawnGhostSprite(tile, false);
+            }
+            else if (i == 0 && isDairyDoor)
+            {
+                // Dairy door (SW exit, col-step): single flipY=true sprite — no RoadR crossroad
+                SpawnGhostSprite(tile, true);
+            }
+            else
+            {
+                SpawnGhostSprite(tile, flipY);
+                // Door exit (i==0) is always a corner: also spawn the house-side direction
+                if (i == 0)
+                    SpawnGhostSprite(tile, !flipY);
+                // Mid-path corner: direction changes from previous tile
+                else if (path[i - 1].flipY != flipY)
+                    SpawnGhostSprite(tile, !flipY);
+            }
         }
 
         // Splice preview at junction tile
@@ -385,7 +410,7 @@ public class BuildManager : MonoBehaviour
         // Visual child — sprite renderer used by ConstructionSite
         var visual = new GameObject("Visual");
         visual.transform.SetParent(root.transform);
-        visual.transform.localPosition = Vector3.zero;
+        visual.transform.localPosition = type == BuildingType.House ? new Vector3(0.18f, -0.86f, 0f) : Vector3.zero;
 
         var sr = visual.AddComponent<SpriteRenderer>();
         sr.sortingOrder = bSort;
@@ -433,17 +458,17 @@ public class BuildManager : MonoBehaviour
             if (type == BuildingType.House)
             {
                 // Deur op SW → exit tile één stap in -col richting
-                SpawnRoadToNearestRoad(DoorExit(type, gridPos));
+                SpawnRoadToNearestRoad(DoorExit(type, gridPos), type);
             }
             else if (type == BuildingType.Toolshed)
             {
                 // Deur op SE → exit tile één stap in -row richting (rechtsonder)
-                SpawnRoadToNearestRoad(DoorExit(type, gridPos));
+                SpawnRoadToNearestRoad(DoorExit(type, gridPos), type);
             }
             else if (type == BuildingType.Mill || type == BuildingType.Dairy)
             {
                 // Deur op SW → exit tile één stap links
-                SpawnRoadToNearestRoad(DoorExit(type, gridPos));
+                SpawnRoadToNearestRoad(DoorExit(type, gridPos), type);
             }
         }
 
@@ -456,10 +481,11 @@ public class BuildManager : MonoBehaviour
     {
         if (_layout == null) return false;
         var (fpW, fpH) = FootprintFor(SelectedType);
+        var (ox, oy)   = FootprintOffsetFor(SelectedType);
         for (int dr = 0; dr < fpH; dr++)
         for (int dc = 0; dc < fpW; dc++)
         {
-            int c = gridPos.x + dc, r = gridPos.y + dr;
+            int c = gridPos.x + ox + dc, r = gridPos.y + oy + dr;
             if (c < 0 || c >= _layout.cols || r < 0 || r >= _layout.rows)
             {
                 if (log) Debug.Log($"[Build] ({gridPos.x},{gridPos.y})+({dc},{dr}) = ({c},{r}) — buiten grid");
@@ -479,10 +505,12 @@ public class BuildManager : MonoBehaviour
                     string owner = "onbekend";
                     foreach (var b in _layout.buildings)
                     {
-                        if (c >= b.position.x && c < b.position.x + b.size.x &&
-                            r >= b.position.y && r < b.position.y + b.size.y)
+                        var (bfpW, bfpH) = FootprintFor(b.type);
+                        var (box, boy)   = FootprintOffsetFor(b.type);
+                        if (c >= b.position.x + box && c < b.position.x + box + bfpW &&
+                            r >= b.position.y + boy && r < b.position.y + boy + bfpH)
                         {
-                            owner = $"{(BuildingType)b.type} op ({b.position.x},{b.position.y}) size {b.size.x}×{b.size.y}";
+                            owner = $"{b.type} op ({b.position.x},{b.position.y})";
                             break;
                         }
                     }
@@ -507,58 +535,82 @@ public class BuildManager : MonoBehaviour
     /// Per stap: kies de richting (col of row) die de manhattan-afstand het meest verkleint.
     /// Spawnt een roadsprite op elk grastile tussenin en markeert het als Road in de terrain-array.
     /// </summary>
-    private void SpawnRoadToNearestRoad(Vector2Int from)
+    private void SpawnRoadToNearestRoad(Vector2Int from, BuildingType buildingType = BuildingType.House)
     {
         if (_layout == null) return;
 
-        // Vind dichtstbijzijnde road tile
-        Vector2Int best     = from;
-        float      bestDist = float.MaxValue;
-        for (int row = 0; row < _layout.rows; row++)
-        for (int col = 0; col < _layout.cols; col++)
-        {
-            if (_layout.GetTile(col, row) != TileType.Road) continue;
-            float d = Mathf.Abs(col - from.x) + Mathf.Abs(row - from.y);
-            if (d < bestDist) { bestDist = d; best = new Vector2Int(col, row); }
-        }
-        if (best == from) return;
-
-        var   roadSp    = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Terrain/roads");
-        float isoW      = _layout.isoHalfW * 2f;
-        float isoH      = _layout.isoHalfH * 2f;
-        var   tileVec   = new Vector2(isoW, isoH);
+        var   roadSp     = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Terrain/roads");
+        float isoW       = _layout.isoHalfW * 2f;
+        float isoH       = _layout.isoHalfH * 2f;
+        var   tileVec    = new Vector2(isoW, isoH);
         var   roadParent = GameObject.Find("Terrain")?.transform ?? transform;
 
-        // Overall direction determines flip
         var path = ComputeRoadPath(from, out Vector2Int junction);
+
+        // Always place a road tile at the door exit position (under the door),
+        // even when no existing road network is present yet.
+        // Door exit is a corner tile — spawn both NW-SE and NE-SW sprites.
+        bool fromInBounds = from.x >= 0 && from.x < _layout.cols
+                         && from.y >= 0 && from.y < _layout.rows;
+        bool doorFlipY = path.Count > 0 ? path[0].flipY : false;
+        bool doorFlipX = buildingType == BuildingType.House;
+        if (fromInBounds && _layout.GetTile(from.x, from.y) == TileType.Grass)
+        {
+            _layout.terrain[from.y * _layout.cols + from.x] = TileType.Road;
+            _occupiedTiles.Add(from);
+            // House door exit: single Road sprite (flipY=true) — no RoadR corner sprite.
+            // Mill door exit (SE corner): single Road sprite (flipY=false) — no RoadR crossroad sprite.
+            // Toolshed door exit (SE, pure -row): single Road sprite (flipY=false) — no RoadR crossroad sprite.
+            if (buildingType == BuildingType.House)
+            {
+                SpawnRoadTile(from, roadSp, tileVec, roadParent, true);
+            }
+            else if (buildingType == BuildingType.Mill || buildingType == BuildingType.Toolshed)
+            {
+                SpawnRoadTile(from, roadSp, tileVec, roadParent, false);
+            }
+            else if (buildingType == BuildingType.Dairy)
+            {
+                // Dairy door (SW exit, col-step): single flipY=true sprite — no RoadR crossroad
+                SpawnRoadTile(from, roadSp, tileVec, roadParent, true);
+            }
+            else
+            {
+                SpawnRoadTile(from, roadSp, tileVec, roadParent, doorFlipY,  doorFlipX);
+                SpawnRoadTile(from, roadSp, tileVec, roadParent, !doorFlipY, doorFlipX);
+            }
+        }
+        else if (fromInBounds && doorFlipX && _layout.GetTile(from.x, from.y) == TileType.Road)
+        {
+            // Door exit already Road (house placed next to existing road) — patch flipY on pre-rendered sprites
+            var rt  = roadParent.Find($"Road_{from.x}_{from.y}");
+            if (rt  != null && rt .TryGetComponent<SpriteRenderer>(out var rs )) { rs .flipY = true; }
+            var rtr = roadParent.Find($"RoadR_{from.x}_{from.y}");
+            if (rtr != null && rtr.TryGetComponent<SpriteRenderer>(out var rsr)) { rsr.flipY = true; }
+        }
+
         if (path.Count == 0) return;
 
-        // Start met het deur-exittile zelf (from), daarna loop naar doel
-        for (int i = 0; i < path.Count; i++)
+        // Continue with remaining path tiles (path[0] == from, already placed above)
+        for (int i = 1; i < path.Count; i++)
         {
             var (cur, flipY) = path[i];
             if (_layout.GetTile(cur.x, cur.y) != TileType.Grass) continue;
             _layout.terrain[cur.y * _layout.cols + cur.x] = TileType.Road;
             _occupiedTiles.Add(cur);
             SpawnRoadTile(cur, roadSp, tileVec, roadParent, flipY);
-            // Door exit (i==0) is always a corner: also spawn the house-side direction
-            if (i == 0)
-                SpawnRoadTile(cur, roadSp, tileVec, roadParent, !flipY);
             // Mid-path corner: direction changes from previous tile
-            else if (path[i - 1].flipY != flipY)
+            if (path[i - 1].flipY != flipY)
                 SpawnRoadTile(cur, roadSp, tileVec, roadParent, !flipY);
         }
 
         // Splice at junction: add approach-direction sprite to the existing road tile at best
-        if (path.Count > 0)
-        {
-            var last = path[path.Count - 1].tile;
-            bool cs  = Mathf.Abs(junction.x - last.x) >= Mathf.Abs(junction.y - last.y);
-            SpawnRoadTile(junction, roadSp, tileVec, roadParent, cs);
-        }
+        var last = path[path.Count - 1].tile;
+        bool cs  = Mathf.Abs(junction.x - last.x) >= Mathf.Abs(junction.y - last.y);
+        SpawnRoadTile(junction, roadSp, tileVec, roadParent, cs);
     }
 
-    private void SpawnRoadTile(Vector2Int tile, Sprite roadSp, Vector2 tileVec, Transform parent, bool flipY)
+    private void SpawnRoadTile(Vector2Int tile, Sprite roadSp, Vector2 tileVec, Transform parent, bool flipY, bool flipX = false)
     {
         var center = _layout.TileToWorld(tile.x, tile.y);
         center.z   = 0.01f;
@@ -578,7 +630,7 @@ public class BuildManager : MonoBehaviour
                 go.transform.position   = center;
                 go.transform.localScale = new Vector3(sc, sc, 1f);
                 var sr = go.AddComponent<SpriteRenderer>();
-                sr.sprite = roadSp; sr.sortingOrder = sOrder;
+                sr.sprite = roadSp; sr.sortingOrder = sOrder; sr.flipX = flipX;
             }
             // Always draw row-axis sprite
             if (flipY)
@@ -588,7 +640,7 @@ public class BuildManager : MonoBehaviour
                 go.transform.position   = center;
                 go.transform.localScale = new Vector3(sc, sc, 1f);
                 var sr = go.AddComponent<SpriteRenderer>();
-                sr.sprite = roadSp; sr.sortingOrder = sOrder; sr.flipY = true;
+                sr.sprite = roadSp; sr.sortingOrder = sOrder; sr.flipY = true; sr.flipX = flipX;
             }
         }
         else
@@ -615,12 +667,26 @@ public class BuildManager : MonoBehaviour
         }
 
         foreach (var b in _layout.buildings)
-        for (int dr = 0; dr < b.size.y; dr++)
-        for (int dc = 0; dc < b.size.x; dc++)
-            _occupiedTiles.Add(new Vector2Int(b.position.x + dc, b.position.y + dr));
+        {
+            var (fpW, fpH) = FootprintFor(b.type);
+            var (ox, oy)   = FootprintOffsetFor(b.type);
+            for (int dr = 0; dr < fpH; dr++)
+            for (int dc = 0; dc < fpW; dc++)
+                _occupiedTiles.Add(new Vector2Int(b.position.x + ox + dc, b.position.y + oy + dr));
+        }
     }
 
     // ---- Helpers ----
+
+    /// <summary>
+    /// Grid offset applied to the top-left origin of a building's footprint.
+    /// House sprite is shifted: its visual tiles span (col-1..col+1, row-1..row+1).
+    /// </summary>
+    private static (int x, int y) FootprintOffsetFor(BuildingType type) => type switch
+    {
+        BuildingType.House => (-1, -1),
+        _                  => (0, 0),
+    };
 
     private static (int w, int h) FootprintFor(BuildingType type) => type switch
     {
@@ -646,8 +712,9 @@ public class BuildManager : MonoBehaviour
 
     private static Vector2Int DoorExit(BuildingType type, Vector2Int gridPos) => type switch
     {
-    BuildingType.Mill => new Vector2Int(gridPos.x + 1, gridPos.y - 1), // SE corner: +col -row
-    _                 => new Vector2Int(gridPos.x - 1, gridPos.y),     // SW: step -col
+    BuildingType.Toolshed => new Vector2Int(gridPos.x,     gridPos.y - 1), // SE: step -row
+    BuildingType.Mill     => new Vector2Int(gridPos.x + 1, gridPos.y - 1), // SE corner: +col -row
+    _                     => new Vector2Int(gridPos.x - 1, gridPos.y),     // SW: step -col
     };
 
     private int CostFor(BuildingType type)

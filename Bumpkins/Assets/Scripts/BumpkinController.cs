@@ -271,6 +271,7 @@ public class BumpkinController : MonoBehaviour
         {
             if (_targetSite != null && _targetSite.CurrentStage != ConstructionSite.Stage.Done)
             {
+                _targetWorkCell?.Activate();  // show active sprite now that we've arrived; bumpkin hides below
                 SetStateRaw("Constructing");
                 StartCoroutine(DoConstruction());
             }

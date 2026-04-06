@@ -315,14 +315,12 @@ MonoBehaviour:
   rockPrefab: {fileID: 0}
   woodPrefab: {fileID: 0}
   waterPrefab: {fileID: 0}
-  townHallPrefab: {fileID: 0}
   millPrefab: {fileID: 0}
   farmPrefab: {fileID: 0}
   cowPrefab: {fileID: 0}
   campfirePrefab: {fileID: 0}
   rockpilePrefab: {fileID: 0}
   woodpilePrefab: {fileID: 0}
-  bakeryPrefab: {fileID: 0}
   dairyPrefab: {fileID: 0}
   chickenCoopPrefab: {fileID: 0}
   housePrefab: {fileID: 0}

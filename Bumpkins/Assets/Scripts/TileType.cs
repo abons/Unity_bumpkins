@@ -20,13 +20,11 @@ public enum TileType
 public enum BuildingType
 {
     None        = 0,
-    TownHall    = 1,
     Mill        = 2,
     Cow         = 4,
     Campfire    = 5,
     Rockpile    = 6,
     Woodpile    = 7,
-    Bakery      = 8,
     Dairy       = 9,
     ChickenCoop = 10,
     House       = 11,

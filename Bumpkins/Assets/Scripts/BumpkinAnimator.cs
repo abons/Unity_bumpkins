@@ -113,6 +113,7 @@ public class BumpkinAnimator : MonoBehaviour
         if (stateChanged)
         {
             _lastState = state;
+            _sr.enabled = true;
             _sr.flipX  = false;
             _sr.flipY  = false;
             _visual.localRotation = Quaternion.identity;
@@ -182,7 +183,7 @@ public class BumpkinAnimator : MonoBehaviour
                 break;
 
             case "Constructing":
-                SetSprite(_sprIdle);
+                _sr.enabled = false;
                 break;
 
             case "Walking":

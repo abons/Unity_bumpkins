@@ -125,7 +125,7 @@ public class ConstructionSite : MonoBehaviour
             case BuildingType.Mill:
                 _buildingSr?.gameObject.AddComponent<MillAnimator>();
                 var millDrop = gameObject.AddComponent<DropOffNode>();
-                millDrop.dropOffType = DropOffNode.DropOffType.Bakery;
+                millDrop.dropOffType = DropOffNode.DropOffType.Mill;
                 GameManager.Instance?.UnlockDairy();
                 break;
 
@@ -200,8 +200,8 @@ public class ConstructionSite : MonoBehaviour
         _bricksSprite = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Buildings/bricks");
         _planksSprite = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Buildings/planks");
 
-        int col = gridPos.x;
-        int row = gridPos.y;
+        int col = buildingType == BuildingType.House ? gridPos.x - 1 : gridPos.x;
+        int row = buildingType == BuildingType.House ? gridPos.y - 1 : gridPos.y;
         int w = 2, h = 2;  // default (Toolshed, etc.)
         switch (buildingType)
         {
@@ -209,6 +209,11 @@ public class ConstructionSite : MonoBehaviour
             case BuildingType.Mill:   w = 3; h = 2; break;
             case BuildingType.Dairy:  w = 3; h = 3; break;
         }
+
+        // Compute scale from the saw sprite so all workcell icons share the same
+        // visual size regardless of each sprite's native pixel dimensions.
+        var cellSize = new Vector2(layout.isoHalfW * 2f, layout.isoHalfH * 2f);
+        float sharedScale = 3.0f;
 
         // Each workcell sits on a specific integer tile (c, r) within the footprint.
         // World position = centre of that iso tile; sort order is per-tile so cells
@@ -223,8 +228,7 @@ public class ConstructionSite : MonoBehaviour
             Sprite idle   = kind == WorkCell.CellKind.Corner ? _pickSprite   : _sawSprite;
             Sprite active = kind == WorkCell.CellKind.Corner ? _vrockSprite  : _vsawSprite;
             Sprite done   = kind == WorkCell.CellKind.Corner ? _bricksSprite : _planksSprite;
-            var cellSize  = new Vector2(layout.isoHalfW * 2f, layout.isoHalfH * 2f);
-            cell.Init(kind, idle, active, done, -(c + r) + 2, cellSize);
+            cell.Init(kind, idle, active, done, -(c + r) + 2, cellSize, sharedScale);
             _workCells.Add(cell);
         }
 

@@ -161,7 +161,7 @@ public class ProductionNode : MonoBehaviour
                 UpdateVisual();
                 Debug.Log($"[Node:Wheat] Geoogst. Bumpkin loopt naar Mill.");
                 // Auto-walk naar dichtstbijzijnde Mill
-                var mill = _worker.FindNearestDropOff(DropOffNode.DropOffType.Bakery);
+                var mill = _worker.FindNearestDropOff(DropOffNode.DropOffType.Mill);
                 if (mill != null)
                     _worker.AssignToDropOff(mill);
                 else
