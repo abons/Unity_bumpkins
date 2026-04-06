@@ -38,7 +38,7 @@ public class CampfireAnimator : MonoBehaviour
         _flipTimer = flipInterval + Random.Range(0f, flipInterval);
 
         // Flames overlay als child
-        var sp = Resources.Load<Sprite>("Sprites/Effects/Flames");
+        var sp = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Effects/Flames");
         if (sp != null)
         {
             var flameGo = new GameObject("Flames");

@@ -32,10 +32,10 @@ public class OgreController : MonoBehaviour
     void Start()
     {
         _sr = GetComponent<SpriteRenderer>();
-        _sprStill  = Resources.Load<Sprite>("Sprites/Animals/ogrestil");
-        _sprWalk   = Resources.Load<Sprite>("Sprites/Animals/ogrewalk");
-        _sprAttack = Resources.Load<Sprite>("Sprites/Animals/ogreatta");
-        _sprDead   = Resources.Load<Sprite>("Sprites/Animals/ogredead");
+        _sprStill  = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Animals/ogrestil");
+        _sprWalk   = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Animals/ogrewalk");
+        _sprAttack = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Animals/ogreatta");
+        _sprDead   = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Animals/ogredead");
 
         SetSprite(_sprStill);
         PickNewRoamTarget();

@@ -33,9 +33,9 @@ public class WaspController : MonoBehaviour
     void Start()
     {
         _sr = GetComponent<SpriteRenderer>();
-        _sprFly    = Resources.Load<Sprite>("Sprites/Animals/wasp");
-        _sprAttack = Resources.Load<Sprite>("Sprites/Animals/waspat");
-        _sprDead   = Resources.Load<Sprite>("Sprites/Animals/waspdead");
+        _sprFly    = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Animals/wasp");
+        _sprAttack = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Animals/waspat");
+        _sprDead   = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Animals/waspdead");
 
         SetSprite(_sprFly);
         PickNewRoamTarget();

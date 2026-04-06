@@ -24,7 +24,7 @@ public class MillAnimator : MonoBehaviour
 
         // --- Wieken overlay ---
         // bakeanim = bovenste deel molen + wieken als één sprite → draaien als geheel
-        var sailSp = Resources.Load<Sprite>("Sprites/Buildings/MillSails");
+        var sailSp = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Buildings/MillSails");
         if (sailSp != null)
         {
             var sailGo = new GameObject("MillSails");
@@ -47,7 +47,7 @@ public class MillAnimator : MonoBehaviour
         }
 
         // --- Deur overlay ---
-        var doorSp = Resources.Load<Sprite>("Sprites/Buildings/MillDoor");
+        var doorSp = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Buildings/MillDoor");
         if (doorSp != null)
         {
             var doorGo = new GameObject("MillDoor");

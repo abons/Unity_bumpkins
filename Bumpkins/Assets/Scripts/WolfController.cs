@@ -34,10 +34,10 @@ public class WolfController : MonoBehaviour
     void Start()
     {
         _sr = GetComponent<SpriteRenderer>();
-        _sprWolf   = Resources.Load<Sprite>("Sprites/Animals/wolf");
-        _sprStill  = Resources.Load<Sprite>("Sprites/Animals/wolfstil");
-        _sprAttack = Resources.Load<Sprite>("Sprites/Animals/wolfatta");
-        _sprDead   = Resources.Load<Sprite>("Sprites/Animals/wolfdead");
+        _sprWolf   = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Animals/wolf");
+        _sprStill  = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Animals/wolfstil");
+        _sprAttack = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Animals/wolfatta");
+        _sprDead   = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Animals/wolfdead");
 
         SetSprite(_sprStill);
         PickNewRoamTarget();

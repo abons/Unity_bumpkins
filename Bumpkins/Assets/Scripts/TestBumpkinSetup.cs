@@ -105,7 +105,7 @@ public class TestBumpkinSetup : MonoBehaviour
         // Visual — probeer echte sprite, anders placeholder kleur
         var sr = go.AddComponent<SpriteRenderer>();
         var spriteName = type == BumpkinController.BumpkinType.Male ? "Units/m_still" : "Units/f_still";
-        var sp = Resources.Load<Sprite>($"Sprites/{spriteName}");
+        var sp = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/{spriteName}");
         sr.sprite       = sp != null ? sp : MakeSquareSprite();
         sr.color        = sp != null ? Color.white : color;
         sr.sortingOrder = 10;

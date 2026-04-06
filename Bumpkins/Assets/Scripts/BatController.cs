@@ -31,9 +31,9 @@ public class BatController : MonoBehaviour
     void Start()
     {
         _sr = GetComponent<SpriteRenderer>();
-        _sprFly    = Resources.Load<Sprite>("Sprites/Animals/bat");
-        _sprAttack = Resources.Load<Sprite>("Sprites/Animals/batatta");
-        _sprDead   = Resources.Load<Sprite>("Sprites/Animals/deadbat");
+        _sprFly    = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Animals/bat");
+        _sprAttack = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Animals/batatta");
+        _sprDead   = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Animals/deadbat");
 
         SetSprite(_sprFly);
         PickNewRoamTarget();

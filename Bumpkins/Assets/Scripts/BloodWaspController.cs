@@ -30,8 +30,8 @@ public class BloodWaspController : MonoBehaviour
     void Start()
     {
         _sr = GetComponent<SpriteRenderer>();
-        _sprFly  = Resources.Load<Sprite>("Sprites/Animals/bloodwsp");
-        _sprDead = Resources.Load<Sprite>("Sprites/Animals/bloodead");
+        _sprFly  = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Animals/bloodwsp");
+        _sprDead = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Animals/bloodead");
 
         SetSprite(_sprFly);
         PickNewRoamTarget();

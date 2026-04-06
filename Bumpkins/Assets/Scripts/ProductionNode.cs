@@ -43,8 +43,8 @@ public class ProductionNode : MonoBehaviour
 
         if (nodeType == NodeType.WheatField)
         {
-            _sprNotReady = Resources.Load<Sprite>("Sprites/Buildings/WheatField");
-            _sprReady    = Resources.Load<Sprite>("Sprites/Buildings/WheatField_grown");
+            _sprNotReady = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Buildings/WheatField");
+            _sprReady    = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Buildings/WheatField_grown");
             _ready       = false;
             UpdateVisual();
         }

@@ -144,7 +144,7 @@ public class ConstructionSite : MonoBehaviour
         go.transform.localScale = Vector3.one;
 
         var sr = go.AddComponent<SpriteRenderer>();
-        sr.sprite       = Resources.Load<Sprite>($"Sprites/Units/{sprN}");
+        sr.sprite       = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/{sprN}");
         sr.sortingOrder = 10;
 
         go.AddComponent<CircleCollider2D>().radius = 0.3f;
@@ -163,7 +163,7 @@ public class ConstructionSite : MonoBehaviour
         go.transform.localPosition = Vector3.zero;
 
         var csr   = go.AddComponent<SpriteRenderer>();
-        var csp   = Resources.Load<Sprite>("Sprites/Units/Chicken");
+        var csp   = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/Chicken");
         float bw  = _buildingSr != null ? _buildingSr.bounds.size.x : 0.5f;
         if (csp != null)
         {
@@ -193,21 +193,21 @@ public class ConstructionSite : MonoBehaviour
     {
         if (layout == null) return;
 
-        _pickSprite   = Resources.Load<Sprite>("Sprites/Buildings/pick");
-        _sawSprite    = Resources.Load<Sprite>("Sprites/Buildings/saw");
-        _vrockSprite  = Resources.Load<Sprite>("Sprites/Buildings/vpick");
-        _vsawSprite   = Resources.Load<Sprite>("Sprites/Buildings/vsaw");
-        _bricksSprite = Resources.Load<Sprite>("Sprites/Buildings/bricks");
-        _planksSprite = Resources.Load<Sprite>("Sprites/Buildings/planks");
+        _pickSprite   = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Buildings/pick");
+        _sawSprite    = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Buildings/saw");
+        _vrockSprite  = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Buildings/vpick");
+        _vsawSprite   = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Buildings/vsaw");
+        _bricksSprite = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Buildings/bricks");
+        _planksSprite = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Buildings/planks");
 
         int col = gridPos.x;
         int row = gridPos.y;
-        int w = 2, h = 2;  // default (House, Toolshed)
+        int w = 2, h = 2;  // default (Toolshed, etc.)
         switch (buildingType)
         {
-            case BuildingType.Mill:  w = 3; h = 2; break;
-            case BuildingType.Farm:
-            case BuildingType.Dairy: w = 3; h = 3; break;
+            case BuildingType.House:  w = 3; h = 3; break;
+            case BuildingType.Mill:   w = 3; h = 2; break;
+            case BuildingType.Dairy:  w = 3; h = 3; break;
         }
 
         // Each workcell sits on a specific integer tile (c, r) within the footprint.

@@ -31,9 +31,9 @@ public class ZombieController : MonoBehaviour
     void Start()
     {
         _sr = GetComponent<SpriteRenderer>();
-        _sprWalk   = Resources.Load<Sprite>("Sprites/Animals/zombie");
-        _sprAttack = Resources.Load<Sprite>("Sprites/Animals/zombatta");
-        _sprDead   = Resources.Load<Sprite>("Sprites/Animals/zombdead");
+        _sprWalk   = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Animals/zombie");
+        _sprAttack = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Animals/zombatta");
+        _sprDead   = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Animals/zombdead");
 
         SetSprite(_sprWalk);
         PickNewRoamTarget();

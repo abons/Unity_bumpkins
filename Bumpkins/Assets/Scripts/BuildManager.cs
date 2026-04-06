@@ -176,10 +176,9 @@ public class BuildManager : MonoBehaviour
                 : new Color(1f, 0f, 0f, 0.18f);
         }
 
-        // Ghost road preview für House/Toolshed/Mill/Farm/Dairy
+        // Ghost road preview für House/Toolshed/Mill/Dairy
         if (SelectedType == BuildingType.House || SelectedType == BuildingType.Toolshed ||
-            SelectedType == BuildingType.Mill  || SelectedType == BuildingType.Farm ||
-            SelectedType == BuildingType.Dairy)
+            SelectedType == BuildingType.Mill  || SelectedType == BuildingType.Dairy)
         {
             if (gridPos != _lastGhostGridPos)
             {
@@ -218,7 +217,7 @@ public class BuildManager : MonoBehaviour
 
         _ghostRoadParent = new GameObject("GhostRoad");
 
-        var   roadSp   = Resources.Load<Sprite>("Sprites/Terrain/roads");
+        var   roadSp   = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Terrain/roads");
         float isoW     = _layout.isoHalfW * 2f;
         float isoH     = _layout.isoHalfH * 2f;
         var   tileVec  = new Vector2(isoW, isoH);
@@ -414,7 +413,7 @@ public class BuildManager : MonoBehaviour
             chickenGo.transform.SetParent(root.transform);
             chickenGo.transform.localPosition = Vector3.zero;
             var csr = chickenGo.AddComponent<SpriteRenderer>();
-            var csp = Resources.Load<Sprite>("Sprites/Units/Chicken");
+            var csp = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/Chicken");
             if (csp != null)
             {
                 csr.sprite = csp;
@@ -430,7 +429,7 @@ public class BuildManager : MonoBehaviour
             site.buildingType = type;
             site.InitWorkCells(gridPos, _layout);
 
-            // House/Toolshed/Mill/Farm: verbind met dichtstbijzijnde weg via deur-positie
+            // House/Toolshed/Mill/Dairy: verbind met dichtstbijzijnde weg via deur-positie
             if (type == BuildingType.House)
             {
                 // Deur op SW → exit tile één stap in -col richting
@@ -441,7 +440,7 @@ public class BuildManager : MonoBehaviour
                 // Deur op SE → exit tile één stap in -row richting (rechtsonder)
                 SpawnRoadToNearestRoad(DoorExit(type, gridPos));
             }
-            else if (type == BuildingType.Mill || type == BuildingType.Farm || type == BuildingType.Dairy)
+            else if (type == BuildingType.Mill || type == BuildingType.Dairy)
             {
                 // Deur op SW → exit tile één stap links
                 SpawnRoadToNearestRoad(DoorExit(type, gridPos));
@@ -524,7 +523,7 @@ public class BuildManager : MonoBehaviour
         }
         if (best == from) return;
 
-        var   roadSp    = Resources.Load<Sprite>("Sprites/Terrain/roads");
+        var   roadSp    = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Terrain/roads");
         float isoW      = _layout.isoHalfW * 2f;
         float isoH      = _layout.isoHalfH * 2f;
         var   tileVec   = new Vector2(isoW, isoH);
@@ -630,7 +629,6 @@ public class BuildManager : MonoBehaviour
         BuildingType.House       => (3, 3),
         BuildingType.Toolshed    => (3, 3),
         BuildingType.Mill        => (4, 3),
-        BuildingType.Farm        => (5, 5),
         BuildingType.Dairy       => (3, 3),
         _                        => (2, 2),
     };
@@ -671,10 +669,10 @@ public class BuildManager : MonoBehaviour
 
     private static string SpritePath(BuildingType type) => type switch
     {
-        BuildingType.House       => "Sprites/Buildings/House",
-        BuildingType.Toolshed    => "Sprites/Buildings/Toolshed",
-        BuildingType.ChickenCoop => "Sprites/Buildings/ChickenCoop",
-        _                        => $"Sprites/Buildings/{type}",
+        BuildingType.House       => $"{GraphicsQuality.SpritePath}/Buildings/House",
+        BuildingType.Toolshed    => $"{GraphicsQuality.SpritePath}/Buildings/Toolshed",
+        BuildingType.ChickenCoop => $"{GraphicsQuality.SpritePath}/Buildings/ChickenCoop",
+        _                        => $"{GraphicsQuality.SpritePath}/Buildings/{type}",
     };
 
     private static Sprite _squareSprite;

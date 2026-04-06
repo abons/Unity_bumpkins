@@ -41,8 +41,8 @@ public class ChickenAnimator : MonoBehaviour
         _walkTimer = Random.Range(0f, walkInterval);
         _eggTimer  = eggInterval + Random.Range(0f, 3f);
 
-        _sprChicken = Resources.Load<Sprite>("Sprites/Units/Chicken");
-        _sprEgg     = Resources.Load<Sprite>("Sprites/Units/ChickenEgg");
+        _sprChicken = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/Chicken");
+        _sprEgg     = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/ChickenEgg");
 
         if (_sr != null && _sprChicken != null)
             _sr.sprite = _sprChicken;

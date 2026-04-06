@@ -43,7 +43,7 @@ public class BabySystem : MonoBehaviour
         babyGo.transform.localPosition = new Vector3(-1.5f, -0.3f, 0f);
         babyGo.transform.localScale    = Vector3.one;
         var sr = babyGo.AddComponent<SpriteRenderer>();
-        sr.sprite       = Resources.Load<Sprite>("Sprites/Units/baby");
+        sr.sprite       = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/baby");
         sr.sortingOrder = 20;
 
         yield return new WaitForSeconds(babyDisplaySeconds);
@@ -73,7 +73,7 @@ public class BabySystem : MonoBehaviour
 
         var sr = go.AddComponent<SpriteRenderer>();
         sr.sortingOrder = 10;
-        sr.sprite = Resources.Load<Sprite>($"Sprites/Units/{(isBoy ? "kidm" : "kidf")}");
+        sr.sprite = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(isBoy ? "kidm" : "kidf")}");
 
         var bc = go.AddComponent<BumpkinController>();
         bc.bumpkinType = isBoy ? BumpkinController.BumpkinType.Male : BumpkinController.BumpkinType.Female;

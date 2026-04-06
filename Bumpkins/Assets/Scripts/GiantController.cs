@@ -32,10 +32,10 @@ public class GiantController : MonoBehaviour
     void Start()
     {
         _sr = GetComponent<SpriteRenderer>();
-        _sprStill  = Resources.Load<Sprite>("Sprites/Animals/gianstil");
-        _sprWalk   = Resources.Load<Sprite>("Sprites/Animals/giant");
-        _sprAttack = Resources.Load<Sprite>("Sprites/Animals/gianatt");
-        _sprDead   = Resources.Load<Sprite>("Sprites/Animals/giandead");
+        _sprStill  = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Animals/gianstil");
+        _sprWalk   = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Animals/giant");
+        _sprAttack = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Animals/gianatt");
+        _sprDead   = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Animals/giandead");
 
         SetSprite(_sprStill);
         PickNewRoamTarget();

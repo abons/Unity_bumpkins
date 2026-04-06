@@ -70,14 +70,14 @@ public class BumpkinAnimator : MonoBehaviour
 
         bool male = _bc.IsMale;
         bool kid  = _bc.isChild;
-        _sprIdle      = Resources.Load<Sprite>($"Sprites/Units/{(kid ? (male ? "kidm" : "kidf") : (male ? "m_still" : "f_still"))}");
-        _sprHarvest   = Resources.Load<Sprite>($"Sprites/Units/{(male ? "m_harvest" : "f_harvest")}");
-        _sprMilk      = Resources.Load<Sprite>("Sprites/Units/milking");
-        _sprCarry     = Resources.Load<Sprite>($"Sprites/Units/{(male ? "m_sack"    : "f_sack")}");
-        _sprCarryMilk = Resources.Load<Sprite>("Sprites/Units/f_milk");
-        _sprDead      = Resources.Load<Sprite>($"Sprites/Units/{(kid ? (male ? "d_kidm" : "d_kidf") : (male ? "d_male" : "d_fema"))}");
-        _sprSkeleton  = Resources.Load<Sprite>("Sprites/Units/skeleton");
-        _walkSprites  = Resources.LoadAll<Sprite>($"Sprites/Units/{(male ? "villager" : "woman")}");
+        _sprIdle      = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(kid ? (male ? "kidm" : "kidf") : (male ? "m_still" : "f_still"))}");
+        _sprHarvest   = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(male ? "m_harvest" : "f_harvest")}");
+        _sprMilk      = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/milking");
+        _sprCarry     = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(male ? "m_sack"    : "f_sack")}");
+        _sprCarryMilk = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/f_milk");
+        _sprDead      = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(kid ? (male ? "d_kidm" : "d_kidf") : (male ? "d_male" : "d_fema"))}");
+        _sprSkeleton  = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/skeleton");
+        _walkSprites  = Resources.LoadAll<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(male ? "villager" : "woman")}");
 
         SetSprite(_sprIdle);
     }
@@ -92,7 +92,7 @@ public class BumpkinAnimator : MonoBehaviour
             _lastIsChild = _bc.isChild;
             bool male = _bc.IsMale;
             bool kid  = _bc.isChild;
-            _sprIdle = Resources.Load<Sprite>($"Sprites/Units/{(kid ? (male ? "kidm" : "kidf") : (male ? "m_still" : "f_still"))}");
+            _sprIdle = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(kid ? (male ? "kidm" : "kidf") : (male ? "m_still" : "f_still"))}");
             _lastState = ""; // forceer state-update
         }
 
@@ -102,7 +102,7 @@ public class BumpkinAnimator : MonoBehaviour
             _lastIsElder = _bc.isElder;
             if (_bc.isElder)
             {
-                _sprIdle = Resources.Load<Sprite>($"Sprites/Units/{(_bc.IsMale ? "elderm" : "elderf")}");
+                _sprIdle = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(_bc.IsMale ? "elderm" : "elderf")}");
                 _lastState = ""; // forceer state-update
             }
         }

@@ -20,7 +20,6 @@ public class GridMapBuilder : MonoBehaviour
     [Header("Building Prefabs")]
     public GameObject townHallPrefab;
     public GameObject millPrefab;
-    public GameObject farmPrefab;
     public GameObject cowPrefab;
     public GameObject campfirePrefab;
     public GameObject rockpilePrefab;
@@ -91,13 +90,13 @@ public class GridMapBuilder : MonoBehaviour
 
     private static string SpritePath(EnemyType t) => t switch
     {
-        EnemyType.Wolf      => "Sprites/Animals/wolfstil",
-        EnemyType.Wasp      => "Sprites/Animals/wasp",
-        EnemyType.Bat       => "Sprites/Animals/bat",
-        EnemyType.Ogre      => "Sprites/Animals/ogrestil",
-        EnemyType.Zombie    => "Sprites/Animals/zombie",
-        EnemyType.Giant     => "Sprites/Animals/gianstil",
-        EnemyType.BloodWasp => "Sprites/Animals/bloodwsp",
+        EnemyType.Wolf      => $"{GraphicsQuality.SpritePath}/Animals/wolfstil",
+        EnemyType.Wasp      => $"{GraphicsQuality.SpritePath}/Animals/wasp",
+        EnemyType.Bat       => $"{GraphicsQuality.SpritePath}/Animals/bat",
+        EnemyType.Ogre      => $"{GraphicsQuality.SpritePath}/Animals/ogrestil",
+        EnemyType.Zombie    => $"{GraphicsQuality.SpritePath}/Animals/zombie",
+        EnemyType.Giant     => $"{GraphicsQuality.SpritePath}/Animals/gianstil",
+        EnemyType.BloodWasp => $"{GraphicsQuality.SpritePath}/Animals/bloodwsp",
         _                   => "",
     };
 
@@ -272,10 +271,10 @@ public class GridMapBuilder : MonoBehaviour
                 var sr = visual.AddComponent<SpriteRenderer>();
                 sr.sortingOrder = bSort;
                 var spritePath = b.type == BuildingType.Bakery
-                    ? "Sprites/Buildings/Mill"
+                    ? $"{GraphicsQuality.SpritePath}/Buildings/Mill"
                     : b.type == BuildingType.Woodpile
-                    ? "Sprites/Buildings/Logpile"
-                    : $"Sprites/Buildings/{b.type}";
+                    ? $"{GraphicsQuality.SpritePath}/Buildings/Logpile"
+                    : $"{GraphicsQuality.SpritePath}/Buildings/{b.type}";
                 var sp = Resources.Load<Sprite>(spritePath);
                 if (sp != null)
                 {
@@ -300,7 +299,7 @@ public class GridMapBuilder : MonoBehaviour
                 chickenGo.transform.SetParent(root.transform);
                 chickenGo.transform.localPosition = new Vector3(0f, 0f, 0f);
                 var csr = chickenGo.AddComponent<SpriteRenderer>();
-                var csp = Resources.Load<Sprite>("Sprites/Units/Chicken");
+                var csp = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/Chicken");
                 if (csp != null)
                 {
                     csr.sprite = csp;
@@ -332,11 +331,6 @@ public class GridMapBuilder : MonoBehaviour
             }
 
             // ProductionNode op WheatField en Cow
-            if (b.type == BuildingType.Farm)
-            {
-                var dropOff = root.AddComponent<DropOffNode>();
-                dropOff.dropOffType = DropOffNode.DropOffType.Dairy;
-            }
             if (b.type == BuildingType.WheatField)
             {
                 var node = root.AddComponent<ProductionNode>();
@@ -357,7 +351,7 @@ public class GridMapBuilder : MonoBehaviour
                 cowGo.transform.SetParent(root.transform);
                 cowGo.transform.localPosition = Vector3.zero;
                 var csr = cowGo.AddComponent<SpriteRenderer>();
-                var csp = Resources.Load<Sprite>("Sprites/Units/cow_se");
+                var csp = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/cow_se");
                 if (csp != null)
                 {
                     csr.sprite = csp;
@@ -389,29 +383,7 @@ public class GridMapBuilder : MonoBehaviour
     /// Sprite geschaald met fill + 1% overscale om gaps te voorkomen (voor terrein tiles).
     private GameObject MakeSpriteFill(string resourceName, Vector3 pos, Vector2 size, Transform parent, int sortOrder = 1)
     {
-        var sp = Resources.Load<Sprite>($"Sprites/{resourceName}");
-        if (sp == null) return null;
-
-        var go = new GameObject(resourceName);
-        go.transform.SetParent(parent);
-        go.transform.position = pos;
-
-        float sprW   = sp.bounds.size.x;
-        float sprH   = sp.bounds.size.y;
-        float scaleX = size.x / sprW;
-        float scaleY = size.y / sprH;
-        float scale  = Mathf.Max(scaleX, scaleY) * 1.005f; // fill + overscale
-        go.transform.localScale = new Vector3(scale, scale, 1f);
-
-        var sr = go.AddComponent<SpriteRenderer>();
-        sr.sprite       = sp;
-        sr.sortingOrder = sortOrder;
-        return go;
-    }
-
-    private GameObject MakeSprite(string resourceName, Vector3 pos, Vector2 size, Transform parent, int sortOrder = 1)
-    {
-        var sp = Resources.Load<Sprite>($"Sprites/{resourceName}");
+        var sp = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/{resourceName}");
         if (sp == null) return null;
 
         var go = new GameObject(resourceName);
@@ -423,12 +395,34 @@ public class GridMapBuilder : MonoBehaviour
         float sprH = sp.bounds.size.y;
         float scaleX = size.x / sprW;
         float scaleY = size.y / sprH;
-        float scale  = Mathf.Min(scaleX, scaleY); // fit, niet fill
+        float scale  = Mathf.Max(scaleX, scaleY); // fill: geen gaps
         go.transform.localScale = new Vector3(scale, scale, 1f);
 
         var sr = go.AddComponent<SpriteRenderer>();
         sr.sprite = sp;
         sr.sortingOrder = sortOrder;
+        return go;
+    }
+
+    private GameObject MakeSprite(string resourceName, Vector3 pos, Vector2 size, Transform parent, int sortOrder = 1)
+    {
+        var sp = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/{resourceName}");
+        if (sp == null) return null;
+
+        var go = new GameObject(resourceName);
+        go.transform.SetParent(parent);
+        go.transform.position = pos;
+
+        float sprW = sp.bounds.size.x;
+        float sprH = sp.bounds.size.y;
+        float scaleX = size.x / sprW;
+        float scaleY = size.y / sprH;
+        float scale = Mathf.Min(scaleX, scaleY);
+        go.transform.localScale = new Vector3(scale, scale, 1f);
+
+        var sr2 = go.AddComponent<SpriteRenderer>();
+        sr2.sprite = sp;
+        sr2.sortingOrder = sortOrder;
         return go;
     }
 
@@ -471,7 +465,6 @@ public class GridMapBuilder : MonoBehaviour
     {
         BuildingType.TownHall    => new Color(0.8f, 0.2f, 0.2f),
         BuildingType.Mill        => new Color(0.8f, 0.6f, 0.1f),
-        BuildingType.Farm        => new Color(0.5f, 0.8f, 0.2f),
         BuildingType.Cow         => new Color(0.9f, 0.8f, 0.5f),
         BuildingType.Campfire    => new Color(1.0f, 0.4f, 0.0f),
         BuildingType.Rockpile    => new Color(0.55f, 0.55f, 0.55f),
@@ -501,7 +494,6 @@ public class GridMapBuilder : MonoBehaviour
     {
         BuildingType.TownHall    => townHallPrefab,
         BuildingType.Mill        => millPrefab,
-        BuildingType.Farm        => farmPrefab,
         BuildingType.Cow         => cowPrefab,
         BuildingType.Campfire    => campfirePrefab,
         BuildingType.Rockpile    => rockpilePrefab,

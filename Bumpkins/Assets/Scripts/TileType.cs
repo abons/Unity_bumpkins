@@ -22,7 +22,6 @@ public enum BuildingType
     None        = 0,
     TownHall    = 1,
     Mill        = 2,
-    Farm        = 3,
     Cow         = 4,
     Campfire    = 5,
     Rockpile    = 6,
