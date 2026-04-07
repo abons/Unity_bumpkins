@@ -27,6 +27,9 @@ public class GridMapBuilder : MonoBehaviour
     public GameObject chickenCoopPrefab;
     public GameObject housePrefab;
 
+    [Header("Terrain Tint Colors")]
+    public Color grassTint = Color.white;                       // natural green (no tint)
+
     void Awake()
     {
         // Resolve layout early (Awake) so other scripts can read it in their Start()
@@ -120,6 +123,9 @@ public class GridMapBuilder : MonoBehaviour
         var parent = new GameObject("Terrain").transform;
         parent.SetParent(transform);
 
+        var waterEdgeSprite = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Terrain/Water");
+        var waterEdgeMat    = Resources.Load<Material>("Materials/WaterEdge");
+
         for (int row = 0; row < layout.rows; row++)
         for (int col = 0; col < layout.cols; col++)
         {
@@ -165,34 +171,77 @@ public class GridMapBuilder : MonoBehaviour
                 // Andere niet-gras tiles (Rock, Water etc.) boven het gras
                 if (tile == TileType.Water)
                 {
-                    // Skip all 4 grid corners — no single rotation fits both edges
-                    bool isCorner = (row == 0 || row == layout.rows - 1) &&
-                                    (col == 0 || col == layout.cols - 1);
-                    if (isCorner) { continue; }
+                    bool isBorderTile = row == 0 || row == layout.rows - 1 ||
+                                        col == 0 || col == layout.cols - 1;
+                    if (isBorderTile)
+                    {
+                        // Skip all 4 grid corners — no single rotation fits both edges
+                        bool isCorner = (row == 0 || row == layout.rows - 1) &&
+                                        (col == 0 || col == layout.cols - 1);
+                        if (isCorner) { continue; }
 
-                    float isoAngle = Mathf.Atan2(layout.isoHalfH, layout.isoHalfW) * Mathf.Rad2Deg;
-                    float zRot = row == 0               ? -153f
-                               : row == layout.rows - 1 ?   28f
-                               : col == 0               ? 180f - isoAngle
-                               :                              - isoAngle;
+                        float isoAngle = Mathf.Atan2(layout.isoHalfH, layout.isoHalfW) * Mathf.Rad2Deg;
+                        float zRot = row == 0               ? -153f
+                                   : row == layout.rows - 1 ?   28f
+                                   : col == 0               ? 180f - isoAngle
+                                   :                              - isoAngle;
 
-                    float W = layout.isoHalfW, H = layout.isoHalfH;
-                    Vector3 backOffset = col == 0               ? new Vector3(-W * (2f/3f),  H * Mathf.Sqrt(2f), 0f)
-                                       : col == layout.cols - 1 ? new Vector3( W * (2f/3f), -H * Mathf.Sqrt(2f), 0f)
-                                       : row == 0               ? new Vector3( W * (2f/3f),  H * Mathf.Sqrt(2f), 0f)
-                                       :                          new Vector3(-W * (2f/3f), -H * Mathf.Sqrt(2f), 0f);
+                        float W = layout.isoHalfW, H = layout.isoHalfH;
+                        Vector3 backOffset = col == 0               ? new Vector3(-W * (2f/3f),  H * Mathf.Sqrt(2f), 0f)
+                                           : col == layout.cols - 1 ? new Vector3( W * (2f/3f), -H * Mathf.Sqrt(2f), 0f)
+                                           : row == 0               ? new Vector3( W * (2f/3f),  H * Mathf.Sqrt(2f), 0f)
+                                           :                          new Vector3(-W * (2f/3f), -H * Mathf.Sqrt(2f), 0f);
 
-                    // Back layer: sandhill +180° shifted outward — water side covers the grass zone
-                    var waterBack = MakeSpriteFill("Terrain/sandhill", center + backOffset, tileVec, parent, sOrder + 1)
-                                 ?? MakePlaceholder(TileColor(TileType.Water), center + backOffset, tileVec, parent, sOrder + 1);
-                    waterBack.transform.rotation = Quaternion.Euler(0f, 0f, zRot + 180f);
-                    waterBack.name = $"Tile_{col}_{row}_water_back";
+                        // Back layer: sandhill +180° shifted outward — water side covers the grass zone
+                        var waterBack = MakeSpriteFill("Terrain/sandhill", center + backOffset, tileVec, parent, sOrder + 1)
+                                     ?? MakePlaceholder(TileColor(TileType.Water), center + backOffset, tileVec, parent, sOrder + 1);
+                        waterBack.transform.rotation = Quaternion.Euler(0f, 0f, zRot + 180f);
+                        waterBack.name = $"Tile_{col}_{row}_water_back";
 
-                    // Front layer: sandhill at correct rotation — shore transition on top
-                    var waterGo = MakeSpriteFill("Terrain/sandhill", center, tileVec, parent, sOrder + 2)
-                               ?? MakePlaceholder(TileColor(TileType.Water), center, tileVec, parent, sOrder + 2);
-                    waterGo.transform.rotation = Quaternion.Euler(0f, 0f, zRot);
-                    waterGo.name = $"Tile_{col}_{row}_{tile}";
+                        // Front layer: sandhill at correct rotation — shore transition on top
+                        var waterGo = MakeSpriteFill("Terrain/sandhill", center, tileVec, parent, sOrder + 2)
+                                   ?? MakePlaceholder(TileColor(TileType.Water), center, tileVec, parent, sOrder + 2);
+                        waterGo.transform.rotation = Quaternion.Euler(0f, 0f, zRot);
+                        waterGo.name = $"Tile_{col}_{row}_{tile}";
+                    }
+                    else
+                    {
+                        // Interior sea tile — dedicated Water sprite (sOrder+2 so it renders above Sand at sOrder+1)
+                        var seaGo = MakeSpriteFill("Terrain/Water", center, tileVec, parent, sOrder + 2)
+                                 ?? MakePlaceholder(TileColor(TileType.Water), center, tileVec, parent, sOrder + 2);
+                        seaGo.name = $"Tile_{col}_{row}_sea";
+                    }
+                }
+                else if (tile == TileType.Sand)
+                {
+                    // Beach strip — dedicated Sand sprite
+                    var sandGo = MakeSpriteFill("Terrain/Sand", center, tileVec, parent, sOrder + 1)
+                              ?? MakePlaceholder(TileColor(TileType.Sand), center, tileVec, parent, sOrder + 1);
+                    sandGo.name = $"Tile_{col}_{row}_sand";
+
+                    // Directional WaterEdge overlays — shader clips the Water sprite with smooth noise
+                    void SpawnEdge(int dir, string dirLabel)
+                    {
+                        if (waterEdgeSprite == null || waterEdgeMat == null) return;
+                        var ov = new GameObject($"Tile_{col}_{row}_waterEdge_{dirLabel}");
+                        ov.transform.SetParent(parent);
+                        ov.transform.position = center;
+                        float sprW  = waterEdgeSprite.bounds.size.x;
+                        float sprH  = waterEdgeSprite.bounds.size.y;
+                        float scale = Mathf.Max(tileVec.x / sprW, tileVec.y / sprH);
+                        ov.transform.localScale = new Vector3(scale, scale, 1f);
+                        var sr = ov.AddComponent<SpriteRenderer>();
+                        sr.sprite         = waterEdgeSprite;
+                        sr.sharedMaterial = waterEdgeMat;
+                        sr.sortingOrder   = sOrder + 2;
+                        var mpb = new MaterialPropertyBlock();
+                        mpb.SetFloat("_Direction", dir);
+                        sr.SetPropertyBlock(mpb);
+                    }
+                    if (layout.GetTile(col + 1, row) == TileType.Water) SpawnEdge(0, "colP1");
+                    if (layout.GetTile(col - 1, row) == TileType.Water) SpawnEdge(1, "colM1");
+                    if (layout.GetTile(col, row + 1) == TileType.Water) SpawnEdge(2, "rowP1");
+                    if (layout.GetTile(col, row - 1) == TileType.Water) SpawnEdge(3, "rowM1");
                 }
                 else
                 {
@@ -485,7 +534,8 @@ public class GridMapBuilder : MonoBehaviour
         TileType.FarmPlot => "crops",
         TileType.Rock     => "Terrain/rock01",
         TileType.Wood     => "logs",
-        TileType.Water    => "Terrain/sandhill",
+        TileType.Water    => "Terrain/Water",
+        TileType.Sand     => "Terrain/Sand",
         _                 => null,
     };
 
@@ -497,7 +547,8 @@ public class GridMapBuilder : MonoBehaviour
         TileType.FarmPlot => new Color(0.6f, 0.4f, 0.2f),
         TileType.Rock     => new Color(0.5f, 0.5f, 0.5f),
         TileType.Wood     => new Color(0.4f, 0.25f, 0.1f),
-        TileType.Water    => new Color(0.2f, 0.5f, 0.9f),
+        TileType.Water    => new Color(0.25f, 0.35f, 0.75f),
+        TileType.Sand     => new Color(0.80f, 0.70f, 0.45f),
         _                 => new Color(0.4f, 0.7f, 0.3f),
     };
 

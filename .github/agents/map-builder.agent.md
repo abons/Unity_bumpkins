@@ -122,3 +122,38 @@ Do NOT use `+10` — buildings will cover foreground road tiles.
 3. Setting building sort offset to `+10` → buildings cover foreground roads
 4. Placing buyable buildings (House, Mill, etc.) in the pre-placed list — those must be built by the player
 5. Enemy spawn positions still using old 24×18 coordinates — always scale to 48×36 grid
+
+## Terrain Transitions (Water ↔ Sand ↔ Grass)
+
+**User preference: shader-based noise cuts, NOT pre-baked PNG edge sprites.**
+
+### How it works
+- `Water.png` and `Sand.png` are real texture crops (from `screenshots/1_leftbottom.png`) masked to the diamond shape — clean opaque tiles, no alpha erosion
+- `Assets/Shaders/WaterEdge.shader` clips the Water sprite along an isometric diagonal using smooth bilinear value noise — produces organic blob-shaped edges
+- `Assets/Resources/Materials/WaterEdge.mat` uses that shader; `GridMapBuilder` sets `_Direction` per-instance via `MaterialPropertyBlock`
+- No directional PNG files (WaterEdge_L/R/T/B) — everything is runtime
+
+### Direction → iso diagonal mapping
+The cut axis is a diagonal of the isometric diamond. `_Direction` values:
+
+| Value | Neighbor direction | Cut formula (keep water if…) |
+|-------|-------------------|------------------------------|
+| 0 | `col+1` (screen upper-right) | `uv.x + uv.y > 1` |
+| 1 | `col-1` (screen lower-left)  | `uv.x + uv.y < 1` |
+| 2 | `row+1` (screen upper-left)  | `uv.y > uv.x` |
+| 3 | `row-1` (screen lower-right) | `uv.x > uv.y` |
+
+GridMapBuilder spawns edge overlays on Sand tiles at `sortingOrder = sandTile.sOrder + 2`.
+
+### Shader tuning (Inspector on WaterEdge.mat)
+- `_NoiseFreq` (default 5) — lower = bigger smoother blobs
+- `_NoiseAmp` (default 0.12) — higher = more dramatic edge displacement
+
+### TileType additions (Mission1 only)
+| Value | Name | Sprite |
+|-------|------|--------|
+| 7 | Sand | `Terrain/Sand` |
+
+### Coastline layout (Mission1LayoutGenerator.cs)
+2D value noise (bilinear coarse grid, spacing 4 tiles, seed 1337) displaces the `col+row = 24` diagonal by ±`noiseAmp*5` tiles. `sandWidth = 4.5f` ensures a sand buffer always exists between water and grass for the edge overlays to render on.
+

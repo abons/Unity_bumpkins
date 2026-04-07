@@ -12,6 +12,7 @@ public enum TileType
     Wood      = 4,
     Water     = 5,
     Snow      = 6,
+    Sand      = 7,   // Beach / shore transition strip
 }
 
 /// <summary>
