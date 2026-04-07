@@ -18,6 +18,8 @@ public class BumpkinAnimator : MonoBehaviour
     private Sprite _sprCarryMilk;
     private Sprite _sprDead;
     private Sprite _sprSkeleton;
+    private Sprite _sprThrow;
+    private float  _throwScale = 1f;
 
     // Walk animation
     private Sprite[] _walkSprites;
@@ -77,6 +79,9 @@ public class BumpkinAnimator : MonoBehaviour
         _sprCarryMilk = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/f_milk");
         _sprDead      = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(kid ? (male ? "d_kidm" : "d_kidf") : (male ? "d_male" : "d_fema"))}");
         _sprSkeleton  = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/skeleton");
+        _sprThrow     = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(male ? "mthrow" : "fthrow")}");
+        if (_sprIdle != null && _sprThrow != null && _sprThrow.rect.height > 0f)
+            _throwScale = _sprIdle.rect.height / _sprThrow.rect.height;
         _walkSprites  = Resources.LoadAll<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(male ? "villager" : "woman")}");
 
         SetSprite(_sprIdle);
@@ -117,6 +122,7 @@ public class BumpkinAnimator : MonoBehaviour
             _sr.flipX  = false;
             _sr.flipY  = false;
             _visual.localRotation = Quaternion.identity;
+            _visual.localScale    = Vector3.one;
 
             if (state == "Idle")
             {
@@ -218,6 +224,17 @@ public class BumpkinAnimator : MonoBehaviour
 
             case "DeadSkeleton":
                 SetSprite(_sprSkeleton);
+                break;
+
+            case "ThrowingRock":
+                SetSprite(_sprThrow);
+                _sr.flipX = _bc.MoveDirection.x > 0f;
+                _visual.localScale = new Vector3(0.5f, 0.5f, 1f);
+                break;
+
+            case "MeleeAttacking":
+                SetSprite(_sprIdle);
+                _sr.flipX = _bc.MoveDirection.x > 0f;
                 break;
 
             default:

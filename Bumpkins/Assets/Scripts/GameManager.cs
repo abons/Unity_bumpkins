@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 /// <summary>
 /// Singleton that holds all game state: gold, bread, milk, eggStock, happiness.
@@ -43,6 +44,9 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
+        if (Keyboard.current != null && Keyboard.current.pKey.wasPressedThisFrame)
+            Time.timeScale = Time.timeScale == 0f ? 1f : 0f;
+
         _happinessTick += Time.deltaTime;
         if (_happinessTick >= config.happinessTickSeconds)
         {

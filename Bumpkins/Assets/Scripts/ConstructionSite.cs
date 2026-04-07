@@ -32,9 +32,8 @@ public class ConstructionSite : MonoBehaviour
     {
         _buildingSr = GetComponentInChildren<SpriteRenderer>();
 
-        // Blueprint tint: light blue, semi-transparent
         if (_buildingSr != null)
-            _buildingSr.color = new Color(0.65f, 0.85f, 1f, 0.55f);
+            _buildingSr.enabled = false;
 
         CurrentStage = Stage.Resources;
 
@@ -93,7 +92,10 @@ public class ConstructionSite : MonoBehaviour
         CurrentStage = Stage.Done;
 
         if (_buildingSr != null)
+        {
+            _buildingSr.enabled = true;
             _buildingSr.color = Color.white;
+        }
 
         // Dissolve all workcells — construction is finished
         foreach (var cell in _workCells)
@@ -200,14 +202,19 @@ public class ConstructionSite : MonoBehaviour
         _bricksSprite = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Buildings/bricks");
         _planksSprite = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Buildings/planks");
 
-        int col = buildingType == BuildingType.House ? gridPos.x - 1 : gridPos.x;
-        int row = buildingType == BuildingType.House ? gridPos.y - 1 : gridPos.y;
-        int w = 2, h = 2;  // default (Toolshed, etc.)
+        int col = buildingType == BuildingType.House    ? gridPos.x - 1
+                : buildingType == BuildingType.Toolshed ? gridPos.x - 1
+                : gridPos.x;
+        int row = buildingType == BuildingType.House    ? gridPos.y - 1
+                : buildingType == BuildingType.Toolshed ? gridPos.y - 1
+                : gridPos.y;
+        int w = 2, h = 2;  // default
         switch (buildingType)
         {
-            case BuildingType.House:  w = 3; h = 3; break;
-            case BuildingType.Mill:   w = 3; h = 2; break;
-            case BuildingType.Dairy:  w = 3; h = 3; break;
+            case BuildingType.House:     w = 3; h = 3; break;
+            case BuildingType.Toolshed:  w = 3; h = 3; break;
+            case BuildingType.Mill:      w = 3; h = 2; break;
+            case BuildingType.Dairy:     w = 3; h = 3; break;
         }
 
         // Compute scale from the saw sprite so all workcell icons share the same
@@ -244,13 +251,17 @@ public class ConstructionSite : MonoBehaviour
         if (w >= 3)
         {
             int cMid = col + (w - 1) / 2;
-            Spawn(cMid, row,         WorkCell.CellKind.Side);  // NW face mid
+            // Toolshed door faces SE (exits via NW face) — skip NW face mid saw
+            if (buildingType != BuildingType.Toolshed)
+                Spawn(cMid, row,         WorkCell.CellKind.Side);  // NW face mid
             Spawn(cMid, row + h - 1, WorkCell.CellKind.Side);  // SE face mid
         }
         if (h >= 3)
         {
             int rMid = row + (h - 1) / 2;
             Spawn(col + w - 1, rMid, WorkCell.CellKind.Side);  // NE face mid
+            if (buildingType == BuildingType.Toolshed)
+                Spawn(col, rMid, WorkCell.CellKind.Side);       // SW face mid (Toolshed door is SE, SW is free)
         }
     }
 

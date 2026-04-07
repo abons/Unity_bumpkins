@@ -22,6 +22,10 @@ public class BumpkinController : MonoBehaviour
     public float moveSpeed      = 3f;
     public float stopDistance   = 0.15f;  // stops within this distance of target
 
+    [Header("Attack Ranges")]
+    public const float ThrowRange = 4.0f;
+    public const float MeleeRange = 1.0f;
+
     [Header("State (read-only in inspector)")]
     [SerializeField] private string _currentState = "Idle";
     [SerializeField] private Vector2 _target;
@@ -62,6 +66,12 @@ public class BumpkinController : MonoBehaviour
     }
 
     private bool _playerMoved = false;
+
+    // Attack
+    private float _attackCooldownTimer;
+    private float _attackScanTimer;
+    private const float AttackScanInterval = 0.5f;
+    private const float AttackCooldown     = 2.5f;
 
     // ---- Called when player clicks a production node ----
     public void AssignToNode(ProductionNode node)
@@ -139,6 +149,19 @@ public class BumpkinController : MonoBehaviour
     void Update()
     {
         if (IsDead) return;
+
+        // Attack scan for non-child bumpkins
+        if (!isChild)
+        {
+            if (_attackCooldownTimer > 0f) _attackCooldownTimer -= Time.deltaTime;
+            _attackScanTimer -= Time.deltaTime;
+            if (_attackScanTimer <= 0f)
+            {
+                _attackScanTimer = AttackScanInterval;
+                if (_attackCooldownTimer <= 0f && CanInitiateAttack())
+                    ScanForAttackTarget();
+            }
+        }
 
         // Elder flee logic — periodically check for nearby enemies
         if (isElder)
@@ -535,6 +558,96 @@ public class BumpkinController : MonoBehaviour
                 Debug.Log($"[MakeBaby] {name} + {idleFemale.name} → {freeHouse.name}");
                 break;
         }
+    }
+
+    // ---- Attack helpers ----
+    private bool CanInitiateAttack()
+    {
+        switch (_currentState)
+        {
+            case "Idle":
+            case "IdleWaiting":
+            case "IdleAtCampfire":
+            case "Walking":
+            case "WalkingToBuilding":
+            case "WalkingToCampfire":
+            case "Fleeing":
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private void ScanForAttackTarget()
+    {
+        Transform nearest = null;
+        float     bestDist = ThrowRange;
+
+        void Check(Transform t)
+        {
+            float d = Vector2.Distance(transform.position, t.position);
+            if (d < bestDist) { bestDist = d; nearest = t; }
+        }
+
+        foreach (var e in FindObjectsByType<WolfController>(FindObjectsSortMode.None))        if (e != null) Check(e.transform);
+        foreach (var e in FindObjectsByType<ZombieController>(FindObjectsSortMode.None))      if (e != null) Check(e.transform);
+        foreach (var e in FindObjectsByType<OgreController>(FindObjectsSortMode.None))        if (e != null) Check(e.transform);
+        foreach (var e in FindObjectsByType<GiantController>(FindObjectsSortMode.None))       if (e != null) Check(e.transform);
+        foreach (var e in FindObjectsByType<WaspController>(FindObjectsSortMode.None))        if (e != null) Check(e.transform);
+        foreach (var e in FindObjectsByType<BloodWaspController>(FindObjectsSortMode.None))   if (e != null) Check(e.transform);
+        foreach (var e in FindObjectsByType<BatController>(FindObjectsSortMode.None))         if (e != null) Check(e.transform);
+
+        if (nearest == null) return;
+
+        float dist = Vector2.Distance(transform.position, nearest.position);
+        if (dist <= MeleeRange)
+            StartCoroutine(MeleeAttackCoroutine(nearest));
+        else
+            StartCoroutine(ThrowRockCoroutine(nearest));
+    }
+
+    private IEnumerator MeleeAttackCoroutine(Transform target)
+    {
+        _attackCooldownTimer = AttackCooldown;
+        MoveDirection = target != null
+            ? ((Vector2)target.position - (Vector2)transform.position).normalized
+            : Vector2.right;
+        SetStateRaw("MeleeAttacking");
+        yield return new WaitForSeconds(0.5f);
+        if (target != null)
+            DealDamageToEnemy(target.gameObject);
+        SetState("Idle");
+    }
+
+    private IEnumerator ThrowRockCoroutine(Transform target)
+    {
+        _attackCooldownTimer = AttackCooldown;
+        MoveDirection = target != null
+            ? ((Vector2)target.position - (Vector2)transform.position).normalized
+            : Vector2.right;
+        SetStateRaw("ThrowingRock");
+        yield return new WaitForSeconds(0.5f);   // wind-up
+        if (target != null)
+        {
+            var projGo = new GameObject("ShrapnelProjectile");
+            var proj   = projGo.AddComponent<ShrapnelProjectile>();
+            proj.Launch(target, transform.position);
+        }
+        yield return new WaitForSeconds(1.5f);   // recovery
+        SetState("Idle");
+    }
+
+    private void DealDamageToEnemy(GameObject enemy)
+    {
+        if (enemy == null) return;
+        if (enemy.TryGetComponent<WolfController>(out var wolf))         { wolf.TakeDamage("bumpkin");  return; }
+        if (enemy.TryGetComponent<ZombieController>(out var zombie))     { zombie.TakeDamage("bumpkin"); return; }
+        if (enemy.TryGetComponent<OgreController>(out var ogre))         { ogre.TakeDamage("bumpkin");   return; }
+        if (enemy.TryGetComponent<GiantController>(out var giant))       { giant.TakeDamage("bumpkin");  return; }
+        if (enemy.TryGetComponent<WaspController>(out var wasp))         { wasp.TakeDamage("bumpkin");   return; }
+        if (enemy.TryGetComponent<BloodWaspController>(out var bwasp))   { bwasp.TakeDamage("bumpkin"); return; }
+        if (enemy.TryGetComponent<BatController>(out var bat))           { bat.TakeDamage("bumpkin");    return; }
+        Destroy(enemy);
     }
 
     /// <summary>Zet state zonder work/idle-logica te triggeren.</summary>

@@ -153,6 +153,21 @@ public class OgreController : MonoBehaviour
         _roamWaitTimer = Random.Range(2f, 5f);
     }
 
+    public void TakeDamage(string reason = "unknown")
+    {
+        if (_state == State.Dead) return;
+        StopAllCoroutines();
+        _state = State.Dead;
+        SetSprite(_sprDead);
+        StartCoroutine(DestroyAfter(3f));
+    }
+
+    private IEnumerator DestroyAfter(float seconds)
+    {
+        yield return new WaitForSeconds(seconds);
+        Destroy(gameObject);
+    }
+
     private void SetSprite(Sprite s)
     {
         if (_sr != null && s != null) _sr.sprite = s;

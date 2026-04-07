@@ -14,6 +14,7 @@ public class UIManager : MonoBehaviour
 
     private GUIStyle _style;
     private GUIStyle _btnStyle;
+    private GUIStyle _pauseStyle;
 
     /// <summary>True als de muis dit frame over een GUI-element staat (voorkomt doorklikken).</summary>
     public static bool IsPointerOverGUI { get; private set; }
@@ -56,6 +57,20 @@ public class UIManager : MonoBehaviour
 
         // ---- Map switch buttons ----
         overGUI |= DrawMapButtons();
+
+        // ---- Paused label ----
+        if (Time.timeScale == 0f)
+        {
+            if (_pauseStyle == null)
+            {
+                _pauseStyle           = new GUIStyle(GUI.skin.label);
+                _pauseStyle.fontSize  = 28;
+                _pauseStyle.fontStyle = FontStyle.Bold;
+                _pauseStyle.alignment = TextAnchor.UpperCenter;
+                _pauseStyle.normal.textColor = Color.yellow;
+            }
+            GUI.Label(new Rect(0, 6, RefWidth, 40), "GEPAUZEERD", _pauseStyle);
+        }
 
         var sel = SelectionManager.Instance?.SelectedBumpkin;
         if (sel == null) { IsPointerOverGUI = overGUI; return; }
