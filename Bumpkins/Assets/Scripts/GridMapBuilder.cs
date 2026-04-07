@@ -125,6 +125,8 @@ public class GridMapBuilder : MonoBehaviour
 
         var waterEdgeSprite = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Terrain/Water");
         var waterEdgeMat    = Resources.Load<Material>("Materials/WaterEdge");
+        var sandEdgeSprite  = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Terrain/Sand");
+        var sandEdgeMat     = Resources.Load<Material>("Materials/SandEdge");
 
         for (int row = 0; row < layout.rows; row++)
         for (int col = 0; col < layout.cols; col++)
@@ -260,6 +262,31 @@ public class GridMapBuilder : MonoBehaviour
                     }
                     go.name = $"Tile_{col}_{row}_{tile}";
                 }
+            }
+            else // tile == TileType.Grass — SandEdge overlays on grass tiles adjacent to sand
+            {
+                void SpawnSandEdge(int dir, string dirLabel)
+                {
+                    if (sandEdgeSprite == null || sandEdgeMat == null) return;
+                    var ov = new GameObject($"Tile_{col}_{row}_sandEdge_{dirLabel}");
+                    ov.transform.SetParent(parent);
+                    ov.transform.position = center;
+                    float sprW  = sandEdgeSprite.bounds.size.x;
+                    float sprH  = sandEdgeSprite.bounds.size.y;
+                    float scale = Mathf.Max(tileVec.x / sprW, tileVec.y / sprH);
+                    ov.transform.localScale = new Vector3(scale, scale, 1f);
+                    var sr = ov.AddComponent<SpriteRenderer>();
+                    sr.sprite         = sandEdgeSprite;
+                    sr.sharedMaterial = sandEdgeMat;
+                    sr.sortingOrder   = sOrder + 1;
+                    var mpb = new MaterialPropertyBlock();
+                    mpb.SetFloat("_Direction", dir);
+                    sr.SetPropertyBlock(mpb);
+                }
+                if (layout.GetTile(col + 1, row) == TileType.Sand) SpawnSandEdge(0, "colP1");
+                if (layout.GetTile(col - 1, row) == TileType.Sand) SpawnSandEdge(1, "colM1");
+                if (layout.GetTile(col, row + 1) == TileType.Sand) SpawnSandEdge(2, "rowP1");
+                if (layout.GetTile(col, row - 1) == TileType.Sand) SpawnSandEdge(3, "rowM1");
             }
         }
     }

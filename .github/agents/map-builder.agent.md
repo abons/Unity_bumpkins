@@ -130,7 +130,8 @@ Do NOT use `+10` — buildings will cover foreground road tiles.
 ### How it works
 - `Water.png` and `Sand.png` are real texture crops (from `screenshots/1_leftbottom.png`) masked to the diamond shape — clean opaque tiles, no alpha erosion
 - `Assets/Shaders/WaterEdge.shader` clips the Water sprite along an isometric diagonal using smooth bilinear value noise — produces organic blob-shaped edges
-- `Assets/Resources/Materials/WaterEdge.mat` uses that shader; `GridMapBuilder` sets `_Direction` per-instance via `MaterialPropertyBlock`
+- `Assets/Resources/Materials/WaterEdge.mat` uses that shader; `GridMapBuilder` sets `_Direction` per-instance via `MaterialPropertyBlock` — overlays placed on **Sand** tiles adjacent to Water, `sortingOrder = sandTile.sOrder + 2`
+- `Assets/Resources/Materials/SandEdge.mat` uses the same shader with the Sand sprite; overlays placed on **Grass** tiles adjacent to Sand, `sortingOrder = grassTile.sOrder + 1`
 - No directional PNG files (WaterEdge_L/R/T/B) — everything is runtime
 
 ### Direction → iso diagonal mapping
