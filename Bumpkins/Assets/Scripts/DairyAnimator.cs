@@ -26,7 +26,7 @@ public class DairyAnimator : MonoBehaviour
             _doorSr = doorGo.AddComponent<SpriteRenderer>();
             _doorSr.sprite       = doorSp;
             _doorSr.sortingOrder = baseSort + 2;
-            _doorSr.enabled      = true; // tijdelijk zichtbaar voor positionering
+            _doorSr.enabled      = false; // begin closed
 
             // Trigger op deurpositie op de root
             var rootGo = transform.parent?.gameObject;
