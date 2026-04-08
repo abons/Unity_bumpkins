@@ -692,6 +692,7 @@ public class BuildManager : MonoBehaviour
     {
         BuildingType.ChickenCoop => (1, 1),
         BuildingType.Campfire    => (1, 1),
+        BuildingType.WheatField  => (1, 1),
         BuildingType.House       => (3, 3),
         BuildingType.Toolshed    => (3, 3),
         BuildingType.Mill        => (4, 3),
@@ -727,6 +728,7 @@ public class BuildManager : MonoBehaviour
                 case BuildingType.House:       return cfg.costHouse;
                 case BuildingType.Toolshed:    return cfg.costToolshed;
                 case BuildingType.ChickenCoop: return cfg.costChickenCoop;
+                case BuildingType.WheatField:  return cfg.costWheatField;
                 case BuildingType.Mill:        return cfg.costMill;
                 case BuildingType.Dairy:       return cfg.costDairy;
             }

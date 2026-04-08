@@ -61,12 +61,6 @@ public static class Map2LayoutGenerator
         // ---- Terrain: all Grass by default ----
         data.terrain = new TileType[COLS * ROWS];  // TileType.Grass == 0
 
-        // Shore border — 1-tile Water on all 4 edges
-        SetRect(data,  0,        0, COLS,      1, TileType.Water); // bottom row
-        SetRect(data,  0, ROWS - 1, COLS,      1, TileType.Water); // top row
-        SetRect(data,  0,        1,    1, ROWS-2, TileType.Water); // left col
-        SetRect(data, COLS-1,    1,    1, ROWS-2, TileType.Water); // right col
-
         // ---- Door-exit road tiles only (no road spine) ----
         Set(data,  2,  1, TileType.Road); // ChickenCoop door
         Set(data,  4,  2, TileType.Road); // Rockpile    door
@@ -97,7 +91,7 @@ public static class Map2LayoutGenerator
             new BuildingEntry { type = BuildingType.ChickenCoop, position = new Vector2Int( 3,  1), size = new Vector2Int(1, 1) },
 
             // ── Rows 2–3 — 2×2 buildings ─────────────────────────────────────
-            new BuildingEntry { type = BuildingType.WheatField,  position = new Vector2Int( 1,  2), size = new Vector2Int(2, 2) },
+            new BuildingEntry { type = BuildingType.WheatField,  position = new Vector2Int( 1,  2), size = new Vector2Int(1, 1) },
             new BuildingEntry { type = BuildingType.Rockpile,    position = new Vector2Int( 5,  2), size = new Vector2Int(2, 2) },
             new BuildingEntry { type = BuildingType.Woodpile,    position = new Vector2Int( 8,  2), size = new Vector2Int(2, 2) },
 

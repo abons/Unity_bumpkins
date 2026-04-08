@@ -173,7 +173,13 @@ public class UIManager : MonoBehaviour
             else bm.EnterBuildMode(BuildingType.ChickenCoop);
         }
 
-        int btnCount = 3;
+        if (DrawBuildBtn($"Tarweveld   ({cfg.costWheatField}g)",   BuildingType.WheatField,  gm.Gold >= cfg.costWheatField,  3))
+        {
+            if (bm.InBuildMode && bm.SelectedType == BuildingType.WheatField) bm.ExitBuildMode();
+            else bm.EnterBuildMode(BuildingType.WheatField);
+        }
+
+        int btnCount = 4;
 
         if (gm.MillUnlocked)
         {
