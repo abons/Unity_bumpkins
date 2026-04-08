@@ -115,12 +115,14 @@ public class ConstructionSite : MonoBehaviour
             case BuildingType.House:
                 var tag = gameObject.AddComponent<BuildingTag>();
                 tag.isHouse = true;
+                _buildingSr?.gameObject.AddComponent<HouseAnimator>();
                 SpawnBumpkin();
                 break;
 
             case BuildingType.Toolshed:
                 var tag2 = gameObject.AddComponent<BuildingTag>();
                 tag2.isHouse = false;
+                _buildingSr?.gameObject.AddComponent<ToolshedAnimator>();
                 GameManager.Instance?.UnlockMill();
                 break;
 
@@ -129,6 +131,12 @@ public class ConstructionSite : MonoBehaviour
                 var millDrop = gameObject.AddComponent<DropOffNode>();
                 millDrop.dropOffType = DropOffNode.DropOffType.Mill;
                 GameManager.Instance?.UnlockDairy();
+                break;
+
+            case BuildingType.Dairy:
+                _buildingSr?.gameObject.AddComponent<DairyAnimator>();
+                var dairyDrop = gameObject.AddComponent<DropOffNode>();
+                dairyDrop.dropOffType = DropOffNode.DropOffType.Dairy;
                 break;
 
             case BuildingType.ChickenCoop:

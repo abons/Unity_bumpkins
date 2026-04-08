@@ -22,10 +22,20 @@ public class WolfController : MonoBehaviour
     private State _state = State.Roaming;
 
     private SpriteRenderer _sr;
+    private Transform       _wolfVisual;
     private Sprite _sprWolf;
     private Sprite _sprStill;
     private Sprite _sprAttack;
     private Sprite _sprDead;
+
+    // Walk animation
+    private Sprite[] _walkSprites;
+    private int      _walkFrame;
+    private float    _walkTimer;
+    private float    _walkBobTimer;
+    [SerializeField] private int   _walkFps          = 4;
+    [SerializeField] private float _walkBobAmplitude = 0.03f;
+    [SerializeField] private float _walkBobFrequency = 4f;
 
     private Transform _target;
     private Vector2   _roamTarget;
@@ -33,11 +43,34 @@ public class WolfController : MonoBehaviour
 
     void Start()
     {
+        // Create Visual child so the root position stays clean for movement/sort;
+        // we bob the Visual child, never the root.
+        var visualGo = new GameObject("Visual");
+        visualGo.transform.SetParent(transform);
+        visualGo.transform.localPosition = Vector3.zero;
+        visualGo.transform.localScale    = Vector3.one;
+        _wolfVisual = visualGo.transform;
+
         _sr = GetComponent<SpriteRenderer>();
+        if (_sr != null)
+        {
+            var newSr = visualGo.AddComponent<SpriteRenderer>();
+            newSr.sprite       = _sr.sprite;
+            newSr.color        = _sr.color;
+            newSr.sortingOrder = _sr.sortingOrder;
+            Destroy(_sr);
+            _sr = newSr;
+        }
+        else
+        {
+            _sr = visualGo.AddComponent<SpriteRenderer>();
+        }
+
         _sprWolf   = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Animals/wolf");
         _sprStill  = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Animals/wolfstil");
         _sprAttack = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Animals/wolfatta");
         _sprDead   = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Animals/wolfdead");
+        _walkSprites = new[] { _sprStill, _sprWolf };
 
         SetSprite(_sprStill);
         PickNewRoamTarget();
@@ -77,6 +110,7 @@ public class WolfController : MonoBehaviour
         float dist = Vector2.Distance(transform.position, _roamTarget);
         if (dist <= 0.15f)
         {
+            StopWolfWalk();
             SetSprite(_sprStill);
             _roamWaitTimer -= Time.deltaTime;
             if (_roamWaitTimer <= 0f)
@@ -84,7 +118,7 @@ public class WolfController : MonoBehaviour
         }
         else
         {
-            SetSprite(_sprWolf);
+            TickWolfWalk(_roamTarget);
             MoveToward(_roamTarget, moveSpeed);
         }
     }
@@ -99,9 +133,32 @@ public class WolfController : MonoBehaviour
             StartCoroutine(AttackCoroutine());
         else
         {
-            SetSprite(_sprWolf);
+            TickWolfWalk(_target.position);
             MoveToward(_target.position, chaseSpeed);
         }
+    }
+
+    private void TickWolfWalk(Vector2 target)
+    {
+        _walkTimer    += Time.deltaTime;
+        _walkBobTimer += Time.deltaTime;
+        float interval = 1f / Mathf.Max(1, _walkFps);
+        if (_walkTimer >= interval)
+        {
+            _walkTimer -= interval;
+            _walkFrame  = (_walkFrame + 1) % _walkSprites.Length;
+            SetSprite(_walkSprites[_walkFrame]);
+        }
+        float bob = Mathf.Sin(_walkBobTimer * _walkBobFrequency * Mathf.PI * 2f) * _walkBobAmplitude;
+        if (_wolfVisual != null) _wolfVisual.localPosition = new Vector3(0f, bob, 0f);
+    }
+
+    private void StopWolfWalk()
+    {
+        _walkTimer    = 0f;
+        _walkBobTimer = 0f;
+        _walkFrame    = 0;
+        if (_wolfVisual != null) _wolfVisual.localPosition = Vector3.zero;
     }
 
     // ---- Attack ----

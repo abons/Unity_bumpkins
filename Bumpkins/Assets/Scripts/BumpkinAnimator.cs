@@ -22,12 +22,16 @@ public class BumpkinAnimator : MonoBehaviour
     private float  _throwScale = 1f;
 
     // Walk animation
+    private Sprite   _sprWalk;
     private Sprite[] _walkSprites;
     private int      _walkFrame;
     private float    _walkTimer;
+    private float    _walkBobTimer;
 
     [Header("Walk Animation")]
-    [SerializeField] private int _walkFps = 8;
+    [SerializeField] private int   _walkFps          = 4;
+    [SerializeField] private float _walkBobAmplitude = 0.035f;
+    [SerializeField] private float _walkBobFrequency = 4f;
 
     private string _lastState   = "";
     private bool   _lastIsChild  = false;
@@ -72,7 +76,7 @@ public class BumpkinAnimator : MonoBehaviour
 
         bool male = _bc.IsMale;
         bool kid  = _bc.isChild;
-        _sprIdle      = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(kid ? (male ? "kidm" : "kidf") : (male ? "m_still" : "f_still"))}");
+        _sprIdle      = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(kid ? (male ? "boystill" : "girlstil") : (male ? "m_still" : "f_still"))}");
         _sprHarvest   = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(male ? "m_harvest" : "f_harvest")}");
         _sprMilk      = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/milking");
         _sprCarry     = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(male ? "m_sack"    : "f_sack")}");
@@ -82,7 +86,8 @@ public class BumpkinAnimator : MonoBehaviour
         _sprThrow     = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(male ? "mthrow" : "fthrow")}");
         if (_sprIdle != null && _sprThrow != null && _sprThrow.rect.height > 0f)
             _throwScale = _sprIdle.rect.height / _sprThrow.rect.height;
-        _walkSprites  = Resources.LoadAll<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(male ? "villager" : "woman")}");
+        _sprWalk     = kid ? null : Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(male ? "villager" : "woman")}");
+        _walkSprites  = BuildWalkFrames();
 
         SetSprite(_sprIdle);
     }
@@ -97,7 +102,9 @@ public class BumpkinAnimator : MonoBehaviour
             _lastIsChild = _bc.isChild;
             bool male = _bc.IsMale;
             bool kid  = _bc.isChild;
-            _sprIdle = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(kid ? (male ? "kidm" : "kidf") : (male ? "m_still" : "f_still"))}");
+            _sprIdle = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(kid ? (male ? "boystill" : "girlstil") : (male ? "m_still" : "f_still"))}");
+            _sprWalk     = kid ? null : Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(male ? "villager" : "woman")}");
+            _walkSprites  = BuildWalkFrames();
             _lastState = ""; // forceer state-update
         }
 
@@ -107,8 +114,10 @@ public class BumpkinAnimator : MonoBehaviour
             _lastIsElder = _bc.isElder;
             if (_bc.isElder)
             {
-                _sprIdle = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(_bc.IsMale ? "elderm" : "elderf")}");
-                _lastState = ""; // forceer state-update
+                _sprIdle     = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(_bc.IsMale ? "elderm" : "elderf")}");
+                _sprWalk     = null; // no walk pose sprite for elders
+                _walkSprites  = BuildWalkFrames();
+                _lastState   = ""; // forceer state-update
             }
         }
 
@@ -123,6 +132,8 @@ public class BumpkinAnimator : MonoBehaviour
             _sr.flipY  = false;
             _visual.localRotation = Quaternion.identity;
             _visual.localScale    = Vector3.one;
+            _visual.localPosition = Vector3.zero;
+            _walkBobTimer         = 0f;
 
             if (state == "Idle")
             {
@@ -152,8 +163,9 @@ public class BumpkinAnimator : MonoBehaviour
         // Per-frame walk animation — runs every frame while moving
         if (IsWalkingState(state) && _walkSprites != null && _walkSprites.Length > 0)
         {
-            _sr.flipX = _bc.MoveDirection.x > 0f;
-            _walkTimer += Time.deltaTime;
+            _sr.flipX      = _bc.MoveDirection.x > 0f;
+            _walkTimer     += Time.deltaTime;
+            _walkBobTimer  += Time.deltaTime;
             float frameDuration = 1f / Mathf.Max(1, _walkFps);
             if (_walkTimer >= frameDuration)
             {
@@ -161,6 +173,8 @@ public class BumpkinAnimator : MonoBehaviour
                 _walkFrame  = (_walkFrame + 1) % _walkSprites.Length;
                 SetSprite(_walkSprites[_walkFrame]);
             }
+            float bob = Mathf.Sin(_walkBobTimer * _walkBobFrequency * Mathf.PI * 2f) * _walkBobAmplitude;
+            _visual.localPosition = new Vector3(0f, bob, 0f);
         }
 
         if (!stateChanged) return;
@@ -242,6 +256,9 @@ public class BumpkinAnimator : MonoBehaviour
                 break;
         }
     }
+
+    private Sprite[] BuildWalkFrames() =>
+        (_sprWalk != null) ? new[] { _sprIdle, _sprWalk } : new[] { _sprIdle };
 
     private static bool IsWalkingState(string s) =>
         s == "Walking" || s == "WalkingToNode" || s == "WalkingToConstruction" || s == "Fleeing" ||

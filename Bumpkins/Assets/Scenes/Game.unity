@@ -316,7 +316,6 @@ MonoBehaviour:
   woodPrefab: {fileID: 0}
   waterPrefab: {fileID: 0}
   millPrefab: {fileID: 0}
-  farmPrefab: {fileID: 0}
   cowPrefab: {fileID: 0}
   campfirePrefab: {fileID: 0}
   rockpilePrefab: {fileID: 0}
@@ -324,6 +323,7 @@ MonoBehaviour:
   dairyPrefab: {fileID: 0}
   chickenCoopPrefab: {fileID: 0}
   housePrefab: {fileID: 0}
+  grassTint: {r: 1, g: 1, b: 1, a: 1}
 --- !u!4 &1510777474
 Transform:
   m_ObjectHideFlags: 0
@@ -426,6 +426,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIManager
   maps:
+  - {fileID: 11400000, guid: fbd852b082f89824f929915d80ba7830, type: 2}
   - {fileID: 11400000, guid: 6dc4b5dad06c2994f889d73eca4d62f2, type: 2}
   - {fileID: 11400000, guid: 4d59b449be3dde14ea44d83dad90ab8a, type: 2}
 --- !u!4 &2090774405

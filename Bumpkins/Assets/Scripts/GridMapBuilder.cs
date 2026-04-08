@@ -396,6 +396,14 @@ public class GridMapBuilder : MonoBehaviour
                 tag.isHouse = (b.type == BuildingType.House);
             }
 
+            // Huis deur animatie
+            if (b.type == BuildingType.House)
+                visual.AddComponent<HouseAnimator>();
+
+            // Toolshed deur animatie
+            if (b.type == BuildingType.Toolshed)
+                visual.AddComponent<ToolshedAnimator>();
+
             // Molen wieken + deur animatie + drop-off node
             if (b.type == BuildingType.Mill)
             {
@@ -403,6 +411,10 @@ public class GridMapBuilder : MonoBehaviour
                 var dropOff = root.AddComponent<DropOffNode>();
                 dropOff.dropOffType = DropOffNode.DropOffType.Mill;
             }
+
+            // Dairy deur animatie
+            if (b.type == BuildingType.Dairy)
+                visual.AddComponent<DairyAnimator>();
 
             // ProductionNode op WheatField en Cow
             if (b.type == BuildingType.WheatField)
