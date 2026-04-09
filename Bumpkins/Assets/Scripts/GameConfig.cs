@@ -34,4 +34,13 @@ public class GameConfig : ScriptableObject
     public float happinessTickSeconds = 10f;
     // price impact: each 100 gold above/below 100 shifts happiness by this amount per tick
     public float priceImpactPerHundred = -0.5f;
+
+    [Header("Day / Night")]
+    public float dayDuration         = 60f;   // seconds of daylight
+    public float nightDuration       = 15f;   // seconds of darkness
+    public float dawnDuskDuration    = 5f;    // blend time at each transition
+    public Color dayLightColor       = Color.white;
+    public Color nightLightColor     = new Color(0.15f, 0.18f, 0.35f, 1f);
+    public float dayLightIntensity   = 1.0f;
+    public float nightLightIntensity = 0.25f;
 }

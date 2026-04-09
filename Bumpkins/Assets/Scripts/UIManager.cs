@@ -15,6 +15,9 @@ public class UIManager : MonoBehaviour
     private GUIStyle _style;
     private GUIStyle _btnStyle;
     private GUIStyle _pauseStyle;
+    private GUIStyle _seasonLabelStyle;
+
+    private Texture2D _seasonTex;
 
     /// <summary>True als de muis dit frame over een GUI-element staat (voorkomt doorklikken).</summary>
     public static bool IsPointerOverGUI { get; private set; }
@@ -57,6 +60,9 @@ public class UIManager : MonoBehaviour
 
         // ---- Map switch buttons ----
         overGUI |= DrawMapButtons();
+
+        // ---- Season icon (top right) ----
+        DrawSeasonIcon();
 
         // ---- Paused label ----
         if (Time.timeScale == 0f)
@@ -211,6 +217,54 @@ public class UIManager : MonoBehaviour
         }
 
         return anyOver;
+    }
+
+    private void DrawSeasonIcon()
+    {
+        // Lazy-load texture
+        if (_seasonTex == null)
+            _seasonTex = Resources.Load<Texture2D>(GraphicsQuality.SpritePath + "/UI/season");
+        if (_seasonTex == null) return;
+
+        var dnc = DayNightCycle.Instance;
+        Season season = dnc != null ? dnc.CurrentSeason : Season.Spring;
+
+        // Tint per season
+        Color tint = season switch
+        {
+            Season.Spring => new Color(0.6f, 1f, 0.6f),    // soft green
+            Season.Summer => new Color(1f, 0.95f, 0.4f),   // warm yellow
+            Season.Fall   => new Color(1f, 0.55f, 0.15f),  // orange
+            Season.Winter => new Color(0.6f, 0.85f, 1f),   // icy blue
+            _             => Color.white
+        };
+
+        string label = season switch
+        {
+            Season.Spring => "Spring",
+            Season.Summer => "Summer",
+            Season.Fall   => "Fall",
+            Season.Winter => "Winter",
+            _             => ""
+        };
+
+        float iconW = 56f, iconH = 44f;
+        float ix = RefWidth - iconW - 10f;
+        float iy = 10f;
+
+        GUI.color = tint;
+        GUI.DrawTexture(new Rect(ix, iy, iconW, iconH), _seasonTex, ScaleMode.ScaleToFit);
+        GUI.color = Color.white;
+
+        if (_seasonLabelStyle == null)
+        {
+            _seasonLabelStyle           = new GUIStyle(GUI.skin.label);
+            _seasonLabelStyle.fontSize  = 14;
+            _seasonLabelStyle.fontStyle = FontStyle.Bold;
+            _seasonLabelStyle.alignment = TextAnchor.UpperCenter;
+            _seasonLabelStyle.normal.textColor = Color.white;
+        }
+        GUI.Label(new Rect(ix - 10f, iy + iconH, iconW + 20f, 20f), label, _seasonLabelStyle);
     }
 
     private void BuildStyle()

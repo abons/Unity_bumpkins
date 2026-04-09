@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: f43de899cd750c9498f53e20d120a239
+guid: b39999e406095aa4ea1dcb72927aa195
 TextureImporter:
   internalIDToNameTable:
   - first:
       213: 1952507750863325824
-    second: villager_0
+    second: m_walk_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -51,7 +51,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 200
+  spritePixelsToUnits: 100
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -113,13 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: villager_0
+      name: m_walk_0
       rect:
         serializedVersion: 2
-        x: 24
-        y: 2
-        width: 36
-        height: 56
+        x: 12
+        y: 1
+        width: 18
+        height: 28
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -148,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      villager_0: 1952507750863325824
+      m_walk_0: 1952507750863325824
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

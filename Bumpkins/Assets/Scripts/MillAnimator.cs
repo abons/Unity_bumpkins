@@ -55,7 +55,7 @@ public class MillAnimator : MonoBehaviour
 
             float targetH = transform.localScale.y * 0.25f;
             float scale   = targetH / doorSp.bounds.size.y;
-            doorGo.transform.localPosition = new Vector3(0.69f, -0.36f, 0f);
+            doorGo.transform.localPosition = new Vector3(0.614f, -0.433f, 0f);
             doorGo.transform.localScale    = new Vector3(1f, 1f, 1f);
 
             _doorSr = doorGo.AddComponent<SpriteRenderer>();
@@ -63,25 +63,7 @@ public class MillAnimator : MonoBehaviour
             _doorSr.sortingOrder = baseSort + 2;
             _doorSr.enabled      = false; // begint gesloten
 
-            // Trigger collider voor bumpkin detectie op de root
-            // Trigger op deurpositie (niet op centrum molen)
-            var rootGo = transform.parent?.gameObject;
-            if (rootGo != null)
-            {
-                var rb = rootGo.AddComponent<Rigidbody2D>();
-                rb.bodyType = RigidbodyType2D.Kinematic;
-                rb.useFullKinematicContacts = true;
-
-                // Aparte trigger-child op de deurpositie
-                var trigGo = new GameObject("DoorTrigger");
-                trigGo.transform.SetParent(rootGo.transform);
-                trigGo.transform.localPosition = new Vector3(0.69f, -0.36f, 0f);
-
-                var trig = trigGo.AddComponent<CircleCollider2D>();
-                trig.isTrigger = true;
-                trig.radius    = 0.01f;
-                trigGo.AddComponent<MillDoorTrigger>().mill = this;
-            }
+            // Door is controlled explicitly by BumpkinController.EnterBuildingWithDoor
         }
     }
 

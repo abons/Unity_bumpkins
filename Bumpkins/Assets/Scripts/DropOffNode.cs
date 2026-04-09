@@ -11,6 +11,9 @@ public class DropOffNode : MonoBehaviour
     [Header("Settings")]
     public DropOffType dropOffType = DropOffType.Mill;
 
+    /// <summary>World-space offset from building root to the door position.</summary>
+    public Vector2 doorOffset = Vector2.zero;
+
     /// <summary>Called by BumpkinController.OnReachedTarget when the bumpkin arrives.</summary>
     public void Deliver(BumpkinController bumpkin)
     {

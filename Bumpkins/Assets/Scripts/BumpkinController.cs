@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -39,6 +40,10 @@ public class BumpkinController : MonoBehaviour
     private ConstructionSite _targetSite;   // voor bouwen
     private WorkCell          _targetWorkCell;  // specific cell assigned at that site
 
+    // Pathfinding
+    private List<Vector2> _path;
+    private int           _pathIndex;
+
     public bool IsMale   => bumpkinType == BumpkinType.Male;
     public bool IsFemale => bumpkinType == BumpkinType.Female;
     public string CurrentState => _currentState;
@@ -55,17 +60,29 @@ public class BumpkinController : MonoBehaviour
     public void MoveTo(Vector2 worldPos)
     {
         if (IsDead) return;
-        // Vrijgeven van eventueel gereserveerde node
         _targetNode?.Release();
         _target        = worldPos;
         _moving        = true;
+        _cancelEntry   = true;
+        ComputePath(worldPos);
         _targetNode    = null;
         _targetDropOff = null;
-        _playerMoved   = true;   // speler heeft dit gegeven, even rust daarna
-        SetState("Walking");
+        _playerMoved   = true;
+        // If InBuilding, the exit coroutine will set Walking after repositioning
+        if (_currentState != "InBuilding")
+            SetState("Walking");
     }
 
-    private bool _playerMoved = false;
+    private bool _playerMoved       = false;
+    private bool _cancelEntry        = false;
+    private bool _justExitedBuilding = false;
+    private Coroutine _hideCoroutine = null;
+
+    private void ComputePath(Vector2 target)
+    {
+        _path      = NavGrid.FindPath(transform.position, target);
+        _pathIndex = 0;
+    }
 
     // Attack
     private float _attackCooldownTimer;
@@ -85,6 +102,7 @@ public class BumpkinController : MonoBehaviour
         _targetDropOff = null;
         _target        = (Vector2)node.transform.position + node.workOffset;
         _moving        = true;
+        ComputePath(_target);
         SetState("WalkingToNode");
     }
 
@@ -93,8 +111,9 @@ public class BumpkinController : MonoBehaviour
     {
         _targetDropOff = node;
         _targetNode    = null;
-        _target        = node.transform.position;
+        _target        = (Vector2)node.transform.position + node.doorOffset;
         _moving        = true;
+        ComputePath(_target);
         SetState("WalkingToDropOff");
     }
 
@@ -106,6 +125,7 @@ public class BumpkinController : MonoBehaviour
         // Walk near the cell centre; small random offset so bumpkin doesn't snap exactly onto it
         _target = (Vector2)cell.transform.position + Random.insideUnitCircle * 0.2f;
         _moving = true;
+        ComputePath(_target);
         SetStateRaw("WalkingToConstruction");
     }
 
@@ -176,9 +196,17 @@ public class BumpkinController : MonoBehaviour
 
         if (!_moving) return;
 
-        Vector2 pos  = transform.position;
-        float   dist = Vector2.Distance(pos, _target);
+        Vector2 pos = transform.position;
 
+        // Advance through completed waypoints
+        while (_path != null && _pathIndex < _path.Count
+               && Vector2.Distance(pos, _path[_pathIndex]) <= stopDistance)
+            _pathIndex++;
+
+        bool    pathDone = _path == null || _pathIndex >= _path.Count;
+        Vector2 waypoint = pathDone ? _target : _path[_pathIndex];
+
+        float dist = Vector2.Distance(pos, waypoint);
         if (dist <= stopDistance)
         {
             _moving = false;
@@ -187,7 +215,7 @@ public class BumpkinController : MonoBehaviour
             return;
         }
 
-        Vector2 dir = (_target - pos).normalized;
+        Vector2 dir = (waypoint - pos).normalized;
         MoveDirection = dir;
         transform.position = (Vector2)transform.position + dir * EffectiveSpeed * Time.deltaTime;
     }
@@ -241,6 +269,7 @@ public class BumpkinController : MonoBehaviour
         Vector2 away = ((Vector2)transform.position - threatPos).normalized;
         _target  = (Vector2)transform.position + away * 6f;
         _moving  = true;
+        ComputePath(_target);
         SetStateRaw("Fleeing");
     }
 
@@ -253,8 +282,12 @@ public class BumpkinController : MonoBehaviour
         }
         else if (_targetDropOff != null)
         {
-            _targetDropOff.Deliver(this);
-            SetState("Idle");
+            var dropOff = _targetDropOff;
+            _targetDropOff = null;
+            dropOff.Deliver(this);
+            var millAnim  = dropOff.GetComponentInChildren<MillAnimator>();
+            var dairyAnim = dropOff.GetComponentInChildren<DairyAnimator>();
+            StartCoroutine(EnterBuildingWithDoor(Random.Range(1.5f, 3f), millAnim, dairyAnim));
         }
         else if (_currentState == "WalkingToCampfire")
         {
@@ -265,7 +298,8 @@ public class BumpkinController : MonoBehaviour
         else if (_currentState == "WalkingToBuilding")
         {
             // Enter building — disappear briefly
-            StartCoroutine(HideInBuilding(Random.Range(3f, 6f)));
+            if (_hideCoroutine != null) StopCoroutine(_hideCoroutine);
+            _hideCoroutine = StartCoroutine(HideInBuilding(Random.Range(3f, 6f)));
         }
         else if (_currentState == "WalkingToEgg")
         {
@@ -281,7 +315,10 @@ public class BumpkinController : MonoBehaviour
         {
             // Man: verdwijn kort, dan Idle. Vrouw: wacht op BabySystem.ReleaseFromBaby.
             if (IsMale)
-                StartCoroutine(HideInBuilding(Random.Range(2f, 4f)));
+            {
+                if (_hideCoroutine != null) StopCoroutine(_hideCoroutine);
+                _hideCoroutine = StartCoroutine(HideInBuilding(Random.Range(2f, 4f)));
+            }
             // Female werd gestuurd via AssignToMakeBaby — BabySystem handelt haar af
         }
         else if (_currentState == "WalkingToMakeBabyFemale")
@@ -306,7 +343,7 @@ public class BumpkinController : MonoBehaviour
         }
         else
         {
-            if (_playerMoved)
+            if (_playerMoved && !_justExitedBuilding)
             {
                 // Speler heeft de bumpkin verplaatst: even rust voor autonome actie
                 _playerMoved = false;
@@ -315,6 +352,8 @@ public class BumpkinController : MonoBehaviour
             }
             else
             {
+                _playerMoved        = false;
+                _justExitedBuilding = false;
                 SetState("Idle");
             }
         }
@@ -348,12 +387,78 @@ public class BumpkinController : MonoBehaviour
         SetState("Idle");
     }
 
+    private IEnumerator EnterBuildingWithDoor(float seconds, MillAnimator mill, DairyAnimator dairy)
+    {
+        _cancelEntry = false;
+        if (_hideCoroutine != null) { StopCoroutine(_hideCoroutine); _hideCoroutine = null; }
+
+        // Open door first, let player see the unit step in
+        mill?.OpenDoor();
+        dairy?.OpenDoor();
+        yield return new WaitForSeconds(0.2f);
+        if (_cancelEntry) { mill?.CloseDoor(); dairy?.CloseDoor(); yield break; }
+
+        // Walk directly into the building (bypasses navgrid)
+        Vector2 doorPos     = (Vector2)transform.position;          // remember exit spot
+        Vector2 enterTarget = doorPos + new Vector2(-0.35f, 0.52f);
+        Vector2 startPos    = transform.position;
+        MoveDirection = (enterTarget - startPos).normalized;
+        while (Vector2.Distance((Vector2)transform.position, enterTarget) > 0.02f)
+        {
+            if (_cancelEntry) { mill?.CloseDoor(); dairy?.CloseDoor(); yield break; }
+            transform.position = Vector2.MoveTowards(transform.position, enterTarget, EffectiveSpeed * Time.deltaTime);
+            yield return null;
+        }
+        transform.position = enterTarget;
+        if (_cancelEntry) { mill?.CloseDoor(); dairy?.CloseDoor(); yield break; }
+
+        var sr = GetComponentInChildren<SpriteRenderer>();
+        if (sr) sr.enabled = false;
+        // Close door once unit is fully inside
+        mill?.CloseDoor();
+        dairy?.CloseDoor();
+        SetStateRaw("InBuilding");
+
+        if (!freeWill)
+        {
+            // Stay inside indefinitely; cancelled only by MoveTo (which sets _cancelEntry)
+            while (!_cancelEntry) yield return null;
+            // Re-open door to exit
+            mill?.OpenDoor();
+            dairy?.OpenDoor();
+            yield return new WaitForSeconds(0.2f);
+            transform.position = doorPos;
+            if (sr) sr.enabled = true;
+            SetStateRaw("Walking");  // now safe to show unit at door
+            yield return new WaitForSeconds(0.3f);
+            mill?.CloseDoor();
+            dairy?.CloseDoor();
+            yield break;
+        }
+
+        yield return new WaitForSeconds(seconds);
+
+        // Re-open door to exit
+        mill?.OpenDoor();
+        dairy?.OpenDoor();
+        yield return new WaitForSeconds(0.2f);
+        transform.position = doorPos;
+        if (sr) sr.enabled = true;
+        yield return new WaitForSeconds(0.3f);
+        mill?.CloseDoor();
+        dairy?.CloseDoor();
+        _justExitedBuilding = true;
+        ExitBuilding();
+    }
+
     private IEnumerator HideInBuilding(float seconds)
     {
         var sr = GetComponentInChildren<SpriteRenderer>();
         if (sr) sr.enabled = false;
         SetStateRaw("InBuilding");
         yield return new WaitForSeconds(seconds);
+        if (_currentState != "InBuilding") yield break;
+        _hideCoroutine = null;
         if (sr) sr.enabled = true;
         SetState("Idle");
     }
@@ -467,7 +572,8 @@ public class BumpkinController : MonoBehaviour
         if (!freeWill) return;  // freewill uit: blijf idle
         // Kinderen: alleen leisure, geen baby-actie
         int maxRoll = (!isChild && IsMale) ? 5 : 4;
-        int roll = Random.Range(0, maxRoll);
+        int roll = _justExitedBuilding ? Random.Range(1, maxRoll) : Random.Range(0, maxRoll);
+        _justExitedBuilding = false;
         switch (roll)
         {
             case 0: // Sta gewoon stil een tijdje
@@ -498,6 +604,7 @@ public class BumpkinController : MonoBehaviour
                     {
                         _target = bestAdj;
                         _moving = true;
+                        ComputePath(_target);
                         SetStateRaw("WalkingToCampfire");
                     }
                     else goto case 0;
@@ -512,6 +619,7 @@ public class BumpkinController : MonoBehaviour
                     var picked = tags[Random.Range(0, tags.Length)];
                     _target = picked.transform.position;
                     _moving = true;
+                    ComputePath(_target);
                     SetStateRaw("WalkingToBuilding");
                 }
                 else goto case 0;
@@ -527,6 +635,7 @@ public class BumpkinController : MonoBehaviour
                     _targetChicken = eggSource;
                     _target = (Vector2)eggSource.transform.position + new Vector2(0.15f, 0f);
                     _moving = true;
+                    ComputePath(_target);
                     SetStateRaw("WalkingToEgg");
                 }
                 else goto case 0;
@@ -548,12 +657,14 @@ public class BumpkinController : MonoBehaviour
                 _targetHouse = freeHouse;
                 _target = freeHouse.transform.position;
                 _moving = true;
+                ComputePath(_target);
                 SetStateRaw("WalkingToMakeBaby");
 
                 // Female loopt ook naar huis
                 idleFemale._targetHouse = freeHouse;
                 idleFemale._target = (Vector2)freeHouse.transform.position + new Vector2(0.1f, 0f);
                 idleFemale._moving = true;
+                idleFemale.ComputePath(idleFemale._target);
                 idleFemale.SetStateRaw("WalkingToMakeBabyFemale");
                 Debug.Log($"[MakeBaby] {name} + {idleFemale.name} → {freeHouse.name}");
                 break;
@@ -655,6 +766,19 @@ public class BumpkinController : MonoBehaviour
     {
         _currentState = s;
         Debug.Log($"[Bumpkin:{bumpkinType}] State → {s}");
+    }
+
+    /// <summary>Called after exiting a building — skips Idle state, goes straight to work or activity.</summary>
+    private void ExitBuilding()
+    {
+        _justExitedBuilding = false;
+        if (!TryFindWork())
+        {
+            TryIdleActivity();
+            // Fallback: if freeWill=false or no activity found, ensure a valid visible state
+            if (_currentState == "InBuilding")
+                SetStateRaw("Idle");
+        }
     }
 
     private void SetState(string s)

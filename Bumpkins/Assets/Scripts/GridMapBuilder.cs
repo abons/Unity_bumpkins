@@ -48,6 +48,7 @@ public class GridMapBuilder : MonoBehaviour
         BuildBuildings();
         PatchDoorExitRoads();
         SpawnEnemies();
+        NavGrid.Build(layout);
         FindFirstObjectByType<CameraController>()?.AdaptToLayout(layout);
     }
 
@@ -72,6 +73,7 @@ public class GridMapBuilder : MonoBehaviour
         BuildBuildings();
         PatchDoorExitRoads();
         SpawnEnemies();
+        NavGrid.Build(layout);
         FindFirstObjectByType<CameraController>()?.AdaptToLayout(layout);
     }
 
@@ -410,6 +412,10 @@ public class GridMapBuilder : MonoBehaviour
                 visual.AddComponent<MillAnimator>();
                 var dropOff = root.AddComponent<DropOffNode>();
                 dropOff.dropOffType = DropOffNode.DropOffType.Mill;
+                // Target the walkable tile just outside the SE face of the mill footprint.
+                // DoorExit = (col+1, row-1). Offset from building center to that tile:
+                Vector2 doorExitWorld = layout.TileToWorld(b.position.x + 1, b.position.y - 1);
+                dropOff.doorOffset = doorExitWorld - (Vector2)center;
             }
 
             // Dairy deur animatie

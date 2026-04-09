@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: b39999e406095aa4ea1dcb72927aa195
+guid: 85c371c15afd1d642976be58d93bcc47
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 1952507750863325824
-    second: villager_0
+      213: 8416357892183445141
+    second: season_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -46,7 +46,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -113,13 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: villager_0
+      name: season_0
       rect:
         serializedVersion: 2
-        x: 12
-        y: 1
-        width: 18
-        height: 28
+        x: 11
+        y: 3
+        width: 62
+        height: 67
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 08ac76f5473b81b10800000000000000
-      internalID: 1952507750863325824
+      spriteID: 59e462249e8ecc470800000000000000
+      internalID: 8416357892183445141
       vertices: []
       indices: 
       edges: []
@@ -138,7 +138,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 5e97eb03825dee720800000000000000
+    spriteID: 
     internalID: 0
     vertices: []
     indices: 
@@ -148,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      villager_0: 1952507750863325824
+      season_0: 8416357892183445141
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

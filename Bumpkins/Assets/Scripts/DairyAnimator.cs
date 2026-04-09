@@ -20,7 +20,7 @@ public class DairyAnimator : MonoBehaviour
         {
             var doorGo = new GameObject("DairyDoor");
             doorGo.transform.SetParent(transform);
-            doorGo.transform.localPosition = new Vector3(0.42f, 0.384f, 0f);
+            doorGo.transform.localPosition = new Vector3(-0.418f, -0.386f, 0f);
             doorGo.transform.localScale    = new Vector3(1f, 1f, 1f);
 
             _doorSr = doorGo.AddComponent<SpriteRenderer>();

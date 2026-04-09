@@ -93,7 +93,11 @@ public class BuildManager : MonoBehaviour
         var (ox, oy)   = FootprintOffsetFor(SelectedType);
         for (int dr = 0; dr < fpH; dr++)
         for (int dc = 0; dc < fpW; dc++)
-            _occupiedTiles.Add(new Vector2Int(gridPos.x + ox + dc, gridPos.y + oy + dr));
+        {
+            var tile = new Vector2Int(gridPos.x + ox + dc, gridPos.y + oy + dr);
+            _occupiedTiles.Add(tile);
+            NavGrid.SetBlocked(tile.x, tile.y, true);
+        }
 
         PlaceBuilding(gridPos, SelectedType);
         ExitBuildMode();

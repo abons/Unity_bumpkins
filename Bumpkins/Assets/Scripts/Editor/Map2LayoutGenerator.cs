@@ -62,13 +62,11 @@ public static class Map2LayoutGenerator
         data.terrain = new TileType[COLS * ROWS];  // TileType.Grass == 0
 
         // ---- Door-exit road tiles only (no road spine) ----
-        Set(data,  2,  1, TileType.Road); // ChickenCoop door
-        Set(data,  4,  2, TileType.Road); // Rockpile    door
         Set(data,  7,  2, TileType.Road); // Woodpile    door
-        Set(data,  4,  4, TileType.Road); // Toolshed    door (col, row-1)
-        Set(data,  6,  5, TileType.Road); // Dairy       door
-        Set(data,  2,  7, TileType.Road); // Mill        door (col+1, row-1)
-        Set(data,  5,  8, TileType.Road); // Cow         door
+        Set(data,  5,  4, TileType.Road); // Toolshed    door (col, row-1)
+        Set(data,  1,  5, TileType.Road); // House       door
+        Set(data,  8,  5, TileType.Road); // Dairy       door
+        Set(data,  2,  8, TileType.Road); // Mill        door (col+1, row-1)
 
         // ---- Enemies: none on this test map ----
         data.enemies = new EnemySpawnEntry[0];
@@ -96,12 +94,12 @@ public static class Map2LayoutGenerator
             new BuildingEntry { type = BuildingType.Woodpile,    position = new Vector2Int( 8,  2), size = new Vector2Int(2, 2) },
 
             // ── Rows 5–7 — 3×3 buildings ─────────────────────────────────────
-            new BuildingEntry { type = BuildingType.House,       position = new Vector2Int( 1,  5), size = new Vector2Int(3, 3) },
-            new BuildingEntry { type = BuildingType.Toolshed,    position = new Vector2Int( 4,  5), size = new Vector2Int(3, 3) },
-            new BuildingEntry { type = BuildingType.Dairy,       position = new Vector2Int( 7,  5), size = new Vector2Int(3, 3) },
+            new BuildingEntry { type = BuildingType.House,       position = new Vector2Int( 2,  5), size = new Vector2Int(3, 3) },
+            new BuildingEntry { type = BuildingType.Toolshed,    position = new Vector2Int( 5,  5), size = new Vector2Int(3, 3) },
+            new BuildingEntry { type = BuildingType.Dairy,       position = new Vector2Int( 9,  5), size = new Vector2Int(3, 3) },
 
             // ── Rows 8–10 — 4×3 buildings ────────────────────────────────────
-            new BuildingEntry { type = BuildingType.Mill,        position = new Vector2Int( 1,  8), size = new Vector2Int(4, 3) },
+            new BuildingEntry { type = BuildingType.Mill,        position = new Vector2Int( 1,  9), size = new Vector2Int(4, 3) },
             new BuildingEntry { type = BuildingType.Cow,         position = new Vector2Int( 6,  8), size = new Vector2Int(4, 3) },
         };
 
@@ -126,6 +124,110 @@ public static class Map2LayoutGenerator
         for (int r = row; r < row + h; r++)
         for (int c = col; c < col + w; c++)
             Set(d, c, r, t);
+    }
+}
+
+/// <summary>
+/// Play-mode debug window for DayNightCycle.
+/// Open via Tools > Bumpkins > Day-Night Debug.
+/// </summary>
+public class DayNightDebugWindow : EditorWindow
+{
+    float _speedMultiplier = 1f;
+    bool  _paused          = false;
+    bool  _allDoorsOpen    = false;
+
+    [MenuItem("Tools/Bumpkins/Day-Night Debug")]
+    static void Open() => GetWindow<DayNightDebugWindow>("Day-Night Debug");
+
+    void OnEnable()  => EditorApplication.update += Repaint;
+    void OnDisable() => EditorApplication.update -= Repaint;
+
+    void OnGUI()
+    {
+        if (!Application.isPlaying)
+        {
+            EditorGUILayout.HelpBox("Enter Play Mode to use this debug window.", MessageType.Info);
+            return;
+        }
+
+        var cycle = DayNightCycle.Instance;
+        if (cycle == null)
+        {
+            EditorGUILayout.HelpBox("DayNightCycle not found in scene.", MessageType.Warning);
+            return;
+        }
+
+        // ── State readout ──────────────────────────────────────────────
+        GUILayout.Label("State", EditorStyles.boldLabel);
+
+        string phase = cycle.IsNight ? "NIGHT" : "DAY";
+        GUI.color = cycle.IsNight ? new Color(0.5f, 0.65f, 1f) : new Color(1f, 0.95f, 0.5f);
+        GUILayout.Label($"  Phase  : {phase}", EditorStyles.largeLabel);
+        GUI.color = Color.white;
+        GUILayout.Label($"  Season : {cycle.CurrentSeason}");
+
+        Rect progressRect = GUILayoutUtility.GetRect(0, 20, GUILayout.ExpandWidth(true));
+        EditorGUI.ProgressBar(progressRect, cycle.NightBlend, $"Night blend: {cycle.NightBlend:F2}");
+
+        EditorGUILayout.Space(8);
+
+        // ── Speed control ──────────────────────────────────────────────
+        GUILayout.Label("Speed", EditorStyles.boldLabel);
+        EditorGUILayout.BeginHorizontal();
+
+        _speedMultiplier = EditorGUILayout.Slider("Multiplier", _speedMultiplier, 0.1f, 50f);
+        if (GUILayout.Button("1×", GUILayout.Width(32))) _speedMultiplier = 1f;
+        if (GUILayout.Button("10×", GUILayout.Width(36))) _speedMultiplier = 10f;
+        if (GUILayout.Button("30×", GUILayout.Width(36))) _speedMultiplier = 30f;
+
+        EditorGUILayout.EndHorizontal();
+        cycle.DebugSpeedMultiplier = _speedMultiplier;
+
+        EditorGUILayout.Space(8);
+
+        // ── On / Off ───────────────────────────────────────────────────
+        GUILayout.Label("Cycle", EditorStyles.boldLabel);
+        EditorGUILayout.BeginHorizontal();
+
+        bool shouldBePaused = GUILayout.Toggle(_paused, _paused ? "Paused" : "Running",
+            "Button", GUILayout.Height(28));
+        if (shouldBePaused != _paused)
+        {
+            _paused = shouldBePaused;
+            cycle.DebugPaused = _paused;
+        }
+
+        if (GUILayout.Button("Jump to Noon",     GUILayout.Height(28))) cycle.DebugJumpToDay();
+        if (GUILayout.Button("Jump to Midnight", GUILayout.Height(28))) cycle.DebugJumpToNight();
+        if (GUILayout.Button("Next Season",      GUILayout.Height(28))) cycle.DebugNextSeason();
+
+        EditorGUILayout.EndHorizontal();
+
+        EditorGUILayout.Space(8);
+
+        // ── Doors ──────────────────────────────────────────────────────
+        GUILayout.Label("Doors", EditorStyles.boldLabel);
+        bool newDoorsOpen = GUILayout.Toggle(_allDoorsOpen, _allDoorsOpen ? "All Doors: OPEN" : "All Doors: CLOSED",
+            "Button", GUILayout.Height(28));
+        if (newDoorsOpen != _allDoorsOpen)
+        {
+            _allDoorsOpen = newDoorsOpen;
+            if (_allDoorsOpen)
+            {
+                foreach (var a in Object.FindObjectsByType<HouseAnimator>   (FindObjectsSortMode.None)) a.OpenDoor();
+                foreach (var a in Object.FindObjectsByType<MillAnimator>    (FindObjectsSortMode.None)) a.OpenDoor();
+                foreach (var a in Object.FindObjectsByType<DairyAnimator>   (FindObjectsSortMode.None)) a.OpenDoor();
+                foreach (var a in Object.FindObjectsByType<ToolshedAnimator>(FindObjectsSortMode.None)) a.OpenDoor();
+            }
+            else
+            {
+                foreach (var a in Object.FindObjectsByType<HouseAnimator>   (FindObjectsSortMode.None)) a.CloseDoor();
+                foreach (var a in Object.FindObjectsByType<MillAnimator>    (FindObjectsSortMode.None)) a.CloseDoor();
+                foreach (var a in Object.FindObjectsByType<DairyAnimator>   (FindObjectsSortMode.None)) a.CloseDoor();
+                foreach (var a in Object.FindObjectsByType<ToolshedAnimator>(FindObjectsSortMode.None)) a.CloseDoor();
+            }
+        }
     }
 }
 #endif
