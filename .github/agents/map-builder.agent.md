@@ -41,17 +41,7 @@ BuildingToWorld(col, row, w, h):
 
 ## Island Design
 
-- **Shore border**: 1-tile `TileType.Water` on all 4 edges using `sandhill.png`
-  - Sprite rotated so grass side faces inward (computed from iso angle ≈27°):
-    - South/SE (row 0): −153°
-    - North/NW (row 35): 28°
-    - West/SW (col 0): 180° − isoAngle ≈ 153°  (perp outward normal to SW edge)
-    - East/NE (col 47): −isoAngle ≈ −27°  (perp outward normal to NE edge)
-  - `sandhill.png` → `Resources/Sprites/Terrain/sandhill.png`
-  - Rotation computed in `GridMapBuilder` using `Mathf.Atan2(isoHalfH, isoHalfW)`
-  - **Screen corners** (user view): Left=(0,35), Right=(47,0), Top=(47,35), Bottom=(0,0)
-  - All 4 grid corners skipped (no single rotation fits)
-  - Tile (0,34) rendered at sort −37 (below left-corner tile (1,35) at sort −36) to prevent overlap
+- **Shore border**: shader-based noise coastline — `Water` → `Sand` → `Grass` transition via `WaterEdge.shader` (see Terrain Transitions section). Do **not** use `sandhill.png` edge sprites.
 - **Crossroads** at center (col 24, row 18): horizontal row 18 cols 22–26, vertical col 24 rows 16–20
 - **Rock terrain** at col 8, row 10 (2×2)
 

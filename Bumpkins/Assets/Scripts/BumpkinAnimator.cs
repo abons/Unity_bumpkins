@@ -18,8 +18,9 @@ public class BumpkinAnimator : MonoBehaviour
     private Sprite _sprCarryMilk;
     private Sprite _sprDead;
     private Sprite _sprSkeleton;
-    private Sprite _sprThrow;
-    private float  _throwScale = 1f;
+    private Sprite   _sprThrow;
+    private float    _throwScale = 1f;
+    private Sprite[] _workVariants;
 
     // Walk animation
     private Sprite   _sprWalk;
@@ -29,8 +30,6 @@ public class BumpkinAnimator : MonoBehaviour
 
     [Header("Walk Animation")]
     [SerializeField] private int   _walkFps          = 4;
-    [SerializeField] private float _walkBobAmplitude = 0.035f;
-    [SerializeField] private float _walkBobFrequency = 4f;
 
     private string _lastState   = "";
     private bool   _lastIsChild  = false;
@@ -64,7 +63,6 @@ public class BumpkinAnimator : MonoBehaviour
             newSr.sprite       = _sr.sprite;
             newSr.color        = _sr.color;
             newSr.sortingOrder = _sr.sortingOrder;
-            transform.localScale = _sr.transform.localScale;
             Destroy(_sr);
             _sr = newSr;
         }
@@ -73,20 +71,35 @@ public class BumpkinAnimator : MonoBehaviour
             _sr = visualGo.AddComponent<SpriteRenderer>();
         }
 
-        bool male = _bc.IsMale;
-        bool kid  = _bc.isChild;
-        _sprIdle      = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(kid ? (male ? "boystill" : "girlstil") : (male ? "m_still" : "f_still"))}");
-        _sprHarvest   = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(male ? "m_harvest" : "f_harvest")}");
-        _sprMilk      = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/milking");
-        _sprCarry     = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(male ? "m_sack"    : "f_sack")}");
-        _sprCarryMilk = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/f_milk");
-        _sprDead      = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(kid ? (male ? "d_kidm" : "d_kidf") : (male ? "d_male" : "d_fema"))}");
-        _sprSkeleton  = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/skeleton");
-        _sprThrow     = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(male ? "mthrow" : "fthrow")}");
-        if (_sprIdle != null && _sprThrow != null && _sprThrow.rect.height > 0f)
-            _throwScale = _sprIdle.rect.height / _sprThrow.rect.height;
-        _sprWalk     = kid ? null : Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(male ? "m_walk" : "f_walk")}");
-        _walkSprites  = BuildWalkFrames();
+        if (_bc.IsWorker)
+        {
+            _sprIdle      = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/rp_still");
+            _sprDead      = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/d_buil");
+            _sprSkeleton  = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/skeleton");
+            _sprWalk      = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/reparman");
+            _workVariants = new[]
+            {
+                Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/bushk_rp"),
+                Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/hammer"),
+            };
+        }
+        else
+        {
+            bool male = _bc.IsMale;
+            bool kid  = _bc.isChild;
+            _sprIdle      = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(kid ? (male ? "boystill" : "girlstil") : (male ? "m_still" : "f_still"))}");
+            _sprHarvest   = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(male ? "m_harvest" : "f_harvest")}");
+            _sprMilk      = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/milking");
+            _sprCarry     = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(male ? "m_sack"    : "f_sack")}");
+            _sprCarryMilk = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/f_milk");
+            _sprDead      = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(kid ? (male ? "d_kidm" : "d_kidf") : (male ? "d_male" : "d_fema"))}");
+            _sprSkeleton  = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/skeleton");
+            _sprThrow     = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(male ? "mthrow" : "fthrow")}");
+            if (_sprIdle != null && _sprThrow != null && _sprThrow.rect.height > 0f)
+                _throwScale = _sprIdle.rect.height / _sprThrow.rect.height;
+            _sprWalk      = kid ? null : Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(male ? "m_walk" : "f_walk")}");
+        }
+        _walkSprites = BuildWalkFrames();
 
         SetSprite(_sprIdle);
     }
@@ -96,7 +109,7 @@ public class BumpkinAnimator : MonoBehaviour
         if (_bc == null || _sr == null) return;
 
         // Herlaad idle sprite als kind opgroeit
-        if (_bc.isChild != _lastIsChild)
+        if (!_bc.IsWorker && _bc.isChild != _lastIsChild)
         {
             _lastIsChild = _bc.isChild;
             bool male = _bc.IsMale;
@@ -108,7 +121,7 @@ public class BumpkinAnimator : MonoBehaviour
         }
 
         // Herlaad idle sprite als bumpkin een elder wordt
-        if (_bc.isElder != _lastIsElder)
+        if (!_bc.IsWorker && _bc.isElder != _lastIsElder)
         {
             _lastIsElder = _bc.isElder;
             if (_bc.isElder)
@@ -191,6 +204,11 @@ public class BumpkinAnimator : MonoBehaviour
                             : node.transform.position;
                         SetSprite(_sprMilk);
                     }
+                    else if (_bc.IsWorker && _workVariants != null && _workVariants.Length > 0)
+                    {
+                        transform.position = node.transform.position;
+                        SetSprite(_workVariants[Random.Range(0, _workVariants.Length)]);
+                    }
                     else
                     {
                         transform.position = node.transform.position;
@@ -211,6 +229,7 @@ public class BumpkinAnimator : MonoBehaviour
             case "WalkingToEgg":
             case "WalkingToMakeBaby":
             case "WalkingToMakeBabyFemale":
+            case "WalkingToToolshedConversion":
             case "Fleeing":
                 if (_walkSprites != null && _walkSprites.Length > 0)
                     SetSprite(_walkSprites[0]);
@@ -254,13 +273,57 @@ public class BumpkinAnimator : MonoBehaviour
         }
     }
 
+    public void RefreshForWorker()
+    {
+        _sprIdle      = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/rp_still");
+        _sprDead      = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/d_buil");
+        _sprSkeleton  = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/skeleton");
+        _sprWalk      = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/reparman");
+        _sprHarvest   = null;
+        _sprMilk      = null;
+        _sprCarry     = null;
+        _sprCarryMilk = null;
+        _sprThrow     = null;
+        _workVariants = new[]
+        {
+            Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/bushk_rp"),
+            Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/hammer"),
+        };
+        _walkSprites = BuildWalkFrames();
+        _lastState   = ""; // force state re-evaluation
+        SetSprite(_sprIdle);
+    }
+
+    public void RefreshForMale()
+    {
+        bool male = _bc.IsMale;
+        bool kid  = _bc.isChild;
+        _sprIdle      = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(kid ? (male ? "boystill" : "girlstil") : (male ? "m_still" : "f_still"))}");
+        _sprHarvest   = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(male ? "m_harvest" : "f_harvest")}");
+        _sprMilk      = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/milking");
+        _sprCarry     = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(male ? "m_sack" : "f_sack")}");
+        _sprCarryMilk = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/f_milk");
+        _sprDead      = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(kid ? (male ? "d_kidm" : "d_kidf") : (male ? "d_male" : "d_fema"))}");
+        _sprSkeleton  = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/skeleton");
+        _sprThrow     = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(male ? "mthrow" : "fthrow")}");
+        if (_sprIdle != null && _sprThrow != null && _sprThrow.rect.height > 0f)
+            _throwScale = _sprIdle.rect.height / _sprThrow.rect.height;
+        _sprWalk      = kid ? null : Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/{(male ? "m_walk" : "f_walk")}");
+        _workVariants = null;
+        _walkSprites  = BuildWalkFrames();
+        _lastState    = ""; // force state re-evaluation
+        _lastIsChild  = kid;
+        _lastIsElder  = _bc.isElder;
+        SetSprite(_sprIdle);
+    }
+
     private Sprite[] BuildWalkFrames() =>
         (_sprWalk != null) ? new[] { _sprIdle, _sprWalk } : new[] { _sprIdle };
 
     private static bool IsWalkingState(string s) =>
         s == "Walking" || s == "WalkingToNode" || s == "WalkingToConstruction" || s == "Fleeing" ||
         s == "WalkingToCampfire" || s == "WalkingToBuilding" || s == "WalkingToEgg" ||
-        s == "WalkingToMakeBaby" || s == "WalkingToMakeBabyFemale";
+        s == "WalkingToMakeBaby" || s == "WalkingToMakeBabyFemale" || s == "WalkingToToolshedConversion";
 
     private void SetSprite(Sprite sp)
     {

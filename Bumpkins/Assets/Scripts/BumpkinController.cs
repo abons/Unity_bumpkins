@@ -8,7 +8,7 @@ using UnityEngine;
 /// </summary>
 public class BumpkinController : MonoBehaviour
 {
-    public enum BumpkinType { Male, Female }
+    public enum BumpkinType { Male, Female, Worker }
 
     [Header("Identity")]
     public BumpkinType bumpkinType = BumpkinType.Male;
@@ -47,6 +47,7 @@ public class BumpkinController : MonoBehaviour
 
     public bool IsMale   => bumpkinType == BumpkinType.Male;
     public bool IsFemale => bumpkinType == BumpkinType.Female;
+    public bool IsWorker  => bumpkinType == BumpkinType.Worker;
     public string CurrentState => _currentState;
     public ProductionNode CurrentNode => _targetNode;
     public Vector2 MoveDirection { get; private set; }
@@ -78,6 +79,7 @@ public class BumpkinController : MonoBehaviour
     private bool _cancelEntry        = false;
     private bool _justExitedBuilding = false;
     private Coroutine _hideCoroutine = null;
+    private System.Action _pendingConversionCallback;
 
     private void ComputePath(Vector2 target)
     {
@@ -133,6 +135,23 @@ public class BumpkinController : MonoBehaviour
         SetStateRaw("WalkingToBuilding");
     }
 
+    // ---- Called by UIManager to walk bumpkin into Toolshed for conversion ----
+    public void StartToolshedConversion(BuildingTag toolshed, System.Action onConverted)
+    {
+        if (IsDead) return;
+        _targetNode?.Release();
+        _targetNode    = null;
+        _targetDropOff = null;
+        _pendingConversionCallback = onConverted;
+        _targetBuilding = toolshed;
+        _target        = (Vector2)toolshed.transform.position + toolshed.doorOffset;
+        _moving        = true;
+        _playerMoved   = true;
+        _cancelEntry   = true;  // abort any running building-entry coroutine
+        ComputePath(_target);
+        SetStateRaw("WalkingToToolshedConversion");
+    }
+
     // ---- Called when assigned to a ConstructionSite ----
     public void AssignToConstruction(ConstructionSite site, WorkCell cell)
     {
@@ -147,7 +166,7 @@ public class BumpkinController : MonoBehaviour
 
     void Start()
     {
-        if (!isChild)
+        if (!isChild && !IsWorker)
             StartCoroutine(AgeToElder(300f));
     }
 
@@ -186,8 +205,8 @@ public class BumpkinController : MonoBehaviour
     {
         if (IsDead) return;
 
-        // Attack scan for non-child bumpkins
-        if (!isChild)
+        // Attack scan for non-child, non-worker bumpkins
+        if (!isChild && !IsWorker)
         {
             if (_attackCooldownTimer > 0f) _attackCooldownTimer -= Time.deltaTime;
             _attackScanTimer -= Time.deltaTime;
@@ -199,8 +218,8 @@ public class BumpkinController : MonoBehaviour
             }
         }
 
-        // Elder flee logic — periodically check for nearby enemies
-        if (isElder)
+        // Elder and Worker flee logic — periodically check for nearby enemies
+        if (isElder || IsWorker)
         {
             _fleeCheckTimer -= Time.deltaTime;
             if (_fleeCheckTimer <= 0f)
@@ -322,6 +341,20 @@ public class BumpkinController : MonoBehaviour
             _targetBuilding = null;
             if (_hideCoroutine != null) StopCoroutine(_hideCoroutine);
             StartCoroutine(EnterBuildingWithDoor(Random.Range(3f, 6f), bCenter, anim.mill, anim.dairy, anim.house, anim.toolshed));
+        }
+        else if (_currentState == "WalkingToToolshedConversion")
+        {
+            var anim    = _targetBuilding != null
+                ? GetBuildingAnimators(_targetBuilding.gameObject)
+                : (null, null, null, null);
+            Vector2 bCenter = _targetBuilding != null
+                ? (Vector2)_targetBuilding.transform.position
+                : (Vector2)transform.position;
+            var cb = _pendingConversionCallback;
+            _pendingConversionCallback = null;
+            _targetBuilding = null;
+            if (_hideCoroutine != null) StopCoroutine(_hideCoroutine);
+            StartCoroutine(EnterBuildingWithDoorThenConvert(2.5f, bCenter, anim.mill, anim.dairy, anim.house, anim.toolshed, cb));
         }
         else if (_currentState == "WalkingToEgg")
         {
@@ -479,6 +512,52 @@ public class BumpkinController : MonoBehaviour
         ExitBuilding();
     }
 
+    private IEnumerator EnterBuildingWithDoorThenConvert(float seconds, Vector2 buildingCenter, MillAnimator mill, DairyAnimator dairy,
+        HouseAnimator house, ToolshedAnimator toolshed, System.Action onConverted)
+    {
+        _cancelEntry = false;
+        if (_hideCoroutine != null) { StopCoroutine(_hideCoroutine); _hideCoroutine = null; }
+
+        void OpenAll()  { mill?.OpenDoor(); dairy?.OpenDoor(); house?.OpenDoor(); toolshed?.OpenDoor(); }
+        void CloseAll() { mill?.CloseDoor(); dairy?.CloseDoor(); house?.CloseDoor(); toolshed?.CloseDoor(); }
+
+        OpenAll();
+        yield return new WaitForSeconds(0.2f);
+        if (_cancelEntry) { CloseAll(); yield break; }
+
+        Vector2 doorPos     = (Vector2)transform.position;
+        Vector2 dir         = (buildingCenter - doorPos);
+        Vector2 enterTarget = doorPos + (dir.sqrMagnitude > 0.001f ? dir.normalized : Vector2.up) * 0.55f;
+        MoveDirection = (enterTarget - doorPos).normalized;
+        while (Vector2.Distance((Vector2)transform.position, enterTarget) > 0.02f)
+        {
+            if (_cancelEntry) { CloseAll(); yield break; }
+            transform.position = Vector2.MoveTowards(transform.position, enterTarget, EffectiveSpeed * Time.deltaTime);
+            yield return null;
+        }
+        transform.position = enterTarget;
+        if (_cancelEntry) { CloseAll(); yield break; }
+
+        var sr = GetComponentInChildren<SpriteRenderer>();
+        if (sr) sr.enabled = false;
+        CloseAll();
+        SetStateRaw("InBuilding");
+
+        yield return new WaitForSeconds(seconds);
+
+        // Apply conversion while sprite is hidden — bumpkin reappears as new type
+        onConverted?.Invoke();
+
+        OpenAll();
+        yield return new WaitForSeconds(0.2f);
+        transform.position = doorPos;
+        if (sr) sr.enabled = true;
+        yield return new WaitForSeconds(0.3f);
+        CloseAll();
+        _justExitedBuilding = true;
+        ExitBuilding();
+    }
+
     private IEnumerator HideInBuilding(float seconds)
     {
         var sr = GetComponentInChildren<SpriteRenderer>();
@@ -495,7 +574,7 @@ public class BumpkinController : MonoBehaviour
     {
         var site = _targetSite;
         var cell = _targetWorkCell;
-        yield return new WaitForSeconds(site != null ? site.workDuration : 4f);
+        yield return new WaitForSeconds(site != null ? site.GetWorkDuration(this) : 4f);
         if (site != null && site.CurrentStage != ConstructionSite.Stage.Done)
             site.DeliverWork(cell);
         else
@@ -553,8 +632,8 @@ public class BumpkinController : MonoBehaviour
         if (isElder)   return false;
         if (!freeWill) return false;
 
-        // Check construction sites (males only)
-        if (IsMale)
+        // Check construction sites (males and workers)
+        if (IsMale || IsWorker)
         {
             var sites = FindObjectsByType<ConstructionSite>(FindObjectsSortMode.None);
             ConstructionSite bestSite = null;

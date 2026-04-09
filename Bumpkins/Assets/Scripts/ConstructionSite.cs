@@ -53,12 +53,12 @@ public class ConstructionSite : MonoBehaviour
     // ---- Worker reservation ----
 
     /// <summary>
-    /// Try to assign a male bumpkin to a free workcell.
+    /// Try to assign a male or worker bumpkin to a free workcell.
     /// Returns the reserved WorkCell, or null if none available.
     /// </summary>
     public WorkCell TryReserveWorker(BumpkinController b)
     {
-        if (!b.IsMale)    return null;
+        if (!b.IsMale && !b.IsWorker) return null;
         if (!CanBeWorked) return null;
         var cell = GetFreeCell();
         if (cell == null) return null;
@@ -66,6 +66,10 @@ public class ConstructionSite : MonoBehaviour
         _currentWorkers++;
         return cell;
     }
+
+    /// <summary>Returns the effective work duration for this bumpkin — Workers are 3× faster.</summary>
+    public float GetWorkDuration(BumpkinController b)
+        => b.IsWorker ? workDuration / 3f : workDuration;
 
     /// <summary>Called by bumpkin after finishing one work trip.</summary>
     public void DeliverWork(WorkCell cell)
@@ -123,12 +127,12 @@ public class ConstructionSite : MonoBehaviour
                     tag.doorOffset = hExit - (Vector2)transform.position;
                 }
                 _buildingSr?.gameObject.AddComponent<HouseAnimator>();
-                SpawnBumpkin();
                 break;
 
             case BuildingType.Toolshed:
                 var tag2 = gameObject.AddComponent<BuildingTag>();
-                tag2.isHouse = false;
+                tag2.isHouse    = false;
+                tag2.isToolshed = true;
                 if (_layout != null)
                 {
                     Vector2 tExit = _layout.TileToWorld(_gridPos.x, _gridPos.y - 1); // SE door
@@ -301,7 +305,7 @@ public class ConstructionSite : MonoBehaviour
         foreach (var b in bumpkins)
         {
             if (!CanBeWorked) break;
-            if (!b.IsMale)   continue;
+            if (!b.IsMale && !b.IsWorker) continue;
             if (b.CurrentState != "Idle") continue;
             var cell = TryReserveWorker(b);
             if (cell != null)

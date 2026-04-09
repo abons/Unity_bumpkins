@@ -29,6 +29,9 @@ public class GameConfig : ScriptableObject
     public int costDairy         = 2500;
     public int costToolshed      = 1500;
 
+    [Header("Worker Training")]
+    public int costTrainWorker   = 500;
+
     [Header("Happiness")]
     public float happinessBaseDelta = 0.1f;  // per tick
     public float happinessTickSeconds = 10f;

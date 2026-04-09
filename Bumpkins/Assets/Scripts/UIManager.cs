@@ -19,6 +19,12 @@ public class UIManager : MonoBehaviour
 
     private Texture2D _seasonTex;
 
+    // ---- Toolshed panel ----
+    private BuildingTag _selectedToolshed;
+
+    public void OpenToolshedPanel(BuildingTag tag)  { _selectedToolshed = tag; }
+    public void CloseToolshedPanel()                { _selectedToolshed = null; }
+
     /// <summary>True als de muis dit frame over een GUI-element staat (voorkomt doorklikken).</summary>
     public static bool IsPointerOverGUI { get; private set; }
 
@@ -57,6 +63,10 @@ public class UIManager : MonoBehaviour
 
         // ---- Build menu ----
         overGUI |= DrawBuildMenu(gm);
+
+        // ---- Toolshed panel ----
+        if (_selectedToolshed != null)
+            overGUI |= DrawToolshedPanel(gm);
 
         // ---- Map switch buttons ----
         overGUI |= DrawMapButtons();
@@ -265,6 +275,83 @@ public class UIManager : MonoBehaviour
             _seasonLabelStyle.normal.textColor = Color.white;
         }
         GUI.Label(new Rect(ix - 10f, iy + iconH, iconW + 20f, 20f), label, _seasonLabelStyle);
+    }
+
+    private bool DrawToolshedPanel(GameManager gm)
+    {
+        const float pw = 270f, ph = 160f;
+        float px = (RefWidth  - pw) * 0.5f;
+        float py = (RefHeight - ph) * 0.5f;
+
+        var panel = new Rect(px, py, pw, ph);
+        bool anyOver = panel.Contains(_mousePosRef);
+
+        GUI.Box(panel, "Schuur — Werknemers");
+
+        if (_btnStyle == null) BuildBtnStyle(true);
+
+        var sel = SelectionManager.Instance?.SelectedBumpkin;
+
+        string bumpkinInfo = sel == null  ? "Geen bumpkin geselecteerd"
+                           : sel.IsWorker ? $"{sel.name}  (Arbeider)"
+                           : sel.IsMale   ? $"{sel.name}  (Man)"
+                                          : $"{sel.name}  — selecteer een man";
+        _style.normal.textColor = Color.white;
+        GUI.Label(new Rect(px + 10f, py + 26f, pw - 20f, 22f), bumpkinInfo, _style);
+
+        float bx = px + 10f, bw = pw - 20f, bh = 32f;
+
+        // ---- Train Worker ----
+        bool canTrain = sel != null && sel.IsMale && gm.Gold >= gm.config.costTrainWorker;
+        Color trainCol = canTrain ? Color.white : new Color(0.5f, 0.5f, 0.5f);
+        _btnStyle.normal.textColor  = trainCol;
+        _btnStyle.focused.textColor = trainCol;
+        _btnStyle.hover.textColor   = trainCol;
+        var trainRect = new Rect(bx, py + 56f, bw, bh);
+        anyOver |= trainRect.Contains(_mousePosRef);
+        if (GUI.Button(trainRect, $"Maak Arbeider  ({gm.config.costTrainWorker}g)", _btnStyle) && canTrain)
+        {
+            gm.Buy(gm.config.costTrainWorker, "Arbeider trainen");
+            var toolshed = _selectedToolshed;
+            _selectedToolshed = null;          // sluit panel direct
+            var bumpkin = sel;
+            bumpkin.StartToolshedConversion(toolshed, () =>
+            {
+                bumpkin.bumpkinType = BumpkinController.BumpkinType.Worker;
+                bumpkin.GetComponent<BumpkinAnimator>()?.RefreshForWorker();
+            });
+        }
+
+        // ---- Retrain Bumpkin ----
+        bool canRetrain = sel != null && sel.IsWorker;
+        Color retrainCol = canRetrain ? Color.white : new Color(0.5f, 0.5f, 0.5f);
+        _btnStyle.normal.textColor  = retrainCol;
+        _btnStyle.focused.textColor = retrainCol;
+        _btnStyle.hover.textColor   = retrainCol;
+        var retrainRect = new Rect(bx, py + 94f, bw, bh);
+        anyOver |= retrainRect.Contains(_mousePosRef);
+        if (GUI.Button(retrainRect, "Heropleiden  (gratis)", _btnStyle) && canRetrain)
+        {
+            var toolshed = _selectedToolshed;
+            _selectedToolshed = null;          // sluit panel direct
+            var bumpkin = sel;
+            bumpkin.StartToolshedConversion(toolshed, () =>
+            {
+                bumpkin.bumpkinType = BumpkinController.BumpkinType.Male;
+                bumpkin.GetComponent<BumpkinAnimator>()?.RefreshForMale();
+            });
+        }
+
+        // ---- Close ----
+        _btnStyle.normal.textColor  = Color.white;
+        _btnStyle.focused.textColor = Color.white;
+        _btnStyle.hover.textColor   = Color.white;
+        var closeRect = new Rect(px + pw - 26f, py + 2f, 24f, 22f);
+        anyOver |= closeRect.Contains(_mousePosRef);
+        if (GUI.Button(closeRect, "X", _btnStyle))
+            _selectedToolshed = null;
+
+        return anyOver;
     }
 
     private void BuildStyle()

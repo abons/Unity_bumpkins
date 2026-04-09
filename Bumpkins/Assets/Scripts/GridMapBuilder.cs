@@ -175,46 +175,11 @@ public class GridMapBuilder : MonoBehaviour
                 // Andere niet-gras tiles (Rock, Water etc.) boven het gras
                 if (tile == TileType.Water)
                 {
-                    bool isBorderTile = row == 0 || row == layout.rows - 1 ||
-                                        col == 0 || col == layout.cols - 1;
-                    if (isBorderTile)
-                    {
-                        // Skip all 4 grid corners — no single rotation fits both edges
-                        bool isCorner = (row == 0 || row == layout.rows - 1) &&
-                                        (col == 0 || col == layout.cols - 1);
-                        if (isCorner) { continue; }
-
-                        float isoAngle = Mathf.Atan2(layout.isoHalfH, layout.isoHalfW) * Mathf.Rad2Deg;
-                        float zRot = row == 0               ? -153f
-                                   : row == layout.rows - 1 ?   28f
-                                   : col == 0               ? 180f - isoAngle
-                                   :                              - isoAngle;
-
-                        float W = layout.isoHalfW, H = layout.isoHalfH;
-                        Vector3 backOffset = col == 0               ? new Vector3(-W * (2f/3f),  H * Mathf.Sqrt(2f), 0f)
-                                           : col == layout.cols - 1 ? new Vector3( W * (2f/3f), -H * Mathf.Sqrt(2f), 0f)
-                                           : row == 0               ? new Vector3( W * (2f/3f),  H * Mathf.Sqrt(2f), 0f)
-                                           :                          new Vector3(-W * (2f/3f), -H * Mathf.Sqrt(2f), 0f);
-
-                        // Back layer: sandhill +180° shifted outward — water side covers the grass zone
-                        var waterBack = MakeSpriteFill("Terrain/sandhill", center + backOffset, tileVec, parent, sOrder + 1)
-                                     ?? MakePlaceholder(TileColor(TileType.Water), center + backOffset, tileVec, parent, sOrder + 1);
-                        waterBack.transform.rotation = Quaternion.Euler(0f, 0f, zRot + 180f);
-                        waterBack.name = $"Tile_{col}_{row}_water_back";
-
-                        // Front layer: sandhill at correct rotation — shore transition on top
-                        var waterGo = MakeSpriteFill("Terrain/sandhill", center, tileVec, parent, sOrder + 2)
-                                   ?? MakePlaceholder(TileColor(TileType.Water), center, tileVec, parent, sOrder + 2);
-                        waterGo.transform.rotation = Quaternion.Euler(0f, 0f, zRot);
-                        waterGo.name = $"Tile_{col}_{row}_{tile}";
-                    }
-                    else
-                    {
-                        // Interior sea tile — dedicated Water sprite (sOrder+2 so it renders above Sand at sOrder+1)
-                        var seaGo = MakeSpriteFill("Terrain/Water", center, tileVec, parent, sOrder + 2)
-                                 ?? MakePlaceholder(TileColor(TileType.Water), center, tileVec, parent, sOrder + 2);
-                        seaGo.name = $"Tile_{col}_{row}_sea";
-                    }
+                    // Sea tile — Water sprite everywhere; WaterEdge shader overlays on adjacent Sand tiles
+                    // handle the organic noise transition. No sandhill sprites used.
+                    var seaGo = MakeSpriteFill("Terrain/Water", center, tileVec, parent, sOrder + 2)
+                             ?? MakePlaceholder(TileColor(TileType.Water), center, tileVec, parent, sOrder + 2);
+                    seaGo.name = $"Tile_{col}_{row}_sea";
                 }
                 else if (tile == TileType.Sand)
                 {
@@ -395,7 +360,8 @@ public class GridMapBuilder : MonoBehaviour
             if (b.type == BuildingType.House || b.type == BuildingType.Toolshed)
             {
                 var tag = root.AddComponent<BuildingTag>();
-                tag.isHouse = (b.type == BuildingType.House);
+                tag.isHouse    = (b.type == BuildingType.House);
+                tag.isToolshed = (b.type == BuildingType.Toolshed);
                 // Door exit tile (mirrors PatchDoorExitRoads / BuildManager.DoorExit)
                 Vector2 exitWorld = b.type == BuildingType.House
                     ? layout.TileToWorld(b.position.x - 1, b.position.y)   // SW

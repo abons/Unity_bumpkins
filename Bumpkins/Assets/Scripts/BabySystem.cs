@@ -66,7 +66,7 @@ public class BabySystem : MonoBehaviour
     {
         var go = new GameObject(isBoy ? "KidBoy" : "KidGirl");
         go.transform.position = (Vector3)pos + new Vector3(Random.Range(-0.2f, 0.2f), 0f, 0f);
-        go.transform.localScale = Vector3.one * (0.55f * 3f);   // kleiner dan volwassene
+        go.transform.localScale = new Vector3(2f, 2f, 1f);
 
         var col = go.AddComponent<CircleCollider2D>();
         col.radius = 0.3f;

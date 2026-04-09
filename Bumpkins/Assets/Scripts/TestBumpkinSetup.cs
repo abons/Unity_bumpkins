@@ -109,7 +109,7 @@ public class TestBumpkinSetup : MonoBehaviour
         sr.sprite       = sp != null ? sp : MakeSquareSprite();
         sr.color        = sp != null ? Color.white : color;
         sr.sortingOrder = 10;
-        go.transform.localScale = new Vector3(3.0f, 3.0f, 1f);
+        go.transform.localScale = isChild ? new Vector3(2f, 2f, 1f) : new Vector3(3f, 3f, 1f);
 
         // Collider for click detection
         var col = go.AddComponent<CircleCollider2D>();
@@ -119,7 +119,6 @@ public class TestBumpkinSetup : MonoBehaviour
         var bc = go.AddComponent<BumpkinController>();
         bc.bumpkinType = type;
         bc.isChild = isChild;
-        if (isChild) go.transform.localScale = new Vector3(2.0f, 2.0f, 1f);
 
         go.AddComponent<BumpkinClick>();
         go.AddComponent<BumpkinAnimator>();

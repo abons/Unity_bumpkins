@@ -89,15 +89,24 @@ public class ClickHandler : MonoBehaviour
             return;
         }
 
-        // BuildingTag aangeklikt → stuur geselecteerde bumpkin naar binnen
+        // BuildingTag aangeklikt
         var buildingTag = go.GetComponent<BuildingTag>();
         if (buildingTag == null) buildingTag = go.GetComponentInParent<BuildingTag>();
-        if (buildingTag != null && buildingTag.enterable)
+        if (buildingTag != null)
         {
-            var sel = SelectionManager.Instance?.SelectedBumpkin;
-            if (sel != null)
-                sel.AssignToBuilding(buildingTag);
-            return;
+            // Toolshed → open upgrade panel instead of sending bumpkin inside
+            if (buildingTag.isToolshed)
+            {
+                UIManager.Instance?.OpenToolshedPanel(buildingTag);
+                return;
+            }
+            if (buildingTag.enterable)
+            {
+                var sel = SelectionManager.Instance?.SelectedBumpkin;
+                if (sel != null)
+                    sel.AssignToBuilding(buildingTag);
+                return;
+            }
         }
 
         // ConstructionSite aangeklikt → stuur geselecteerde male bumpkin erheen
