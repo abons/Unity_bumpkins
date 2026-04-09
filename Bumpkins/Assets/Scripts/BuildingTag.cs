@@ -1,3 +1,5 @@
+using UnityEngine;
+
 /// <summary>
 /// Marker op gebouwen die bumpkins als idle-doel mogen gebruiken.
 /// enterable = true → bumpkin loopt erdoorheen en "verdwijnt" even in het gebouw.
@@ -5,8 +7,10 @@
 /// </summary>
 public class BuildingTag : UnityEngine.MonoBehaviour
 {
-    public bool enterable = true;
-    public bool isHouse   = false;
+    public bool enterable  = true;
+    public bool isHouse    = false;
+    /// <summary>World-space offset from this root to the walkable door-exit tile.</summary>
+    public Vector2 doorOffset = Vector2.zero;
 
     public bool IsReservedForBaby { get; private set; }
 

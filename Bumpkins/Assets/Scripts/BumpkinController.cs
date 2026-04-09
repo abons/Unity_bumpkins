@@ -37,6 +37,7 @@ public class BumpkinController : MonoBehaviour
     private DropOffNode     _targetDropOff;
     private ChickenAnimator _targetChicken;
     private BuildingTag     _targetHouse;   // voor makeBaby
+    private BuildingTag     _targetBuilding; // voor idle building visit
     private ConstructionSite _targetSite;   // voor bouwen
     private WorkCell          _targetWorkCell;  // specific cell assigned at that site
 
@@ -115,6 +116,21 @@ public class BumpkinController : MonoBehaviour
         _moving        = true;
         ComputePath(_target);
         SetState("WalkingToDropOff");
+    }
+
+    // ---- Called when player clicks an enterable building ----
+    public void AssignToBuilding(BuildingTag building)
+    {
+        if (IsDead) return;
+        _targetNode?.Release();
+        _targetNode    = null;
+        _targetDropOff = null;
+        _targetBuilding = building;
+        _target        = (Vector2)building.transform.position + building.doorOffset;
+        _moving        = true;
+        _playerMoved   = true;
+        ComputePath(_target);
+        SetStateRaw("WalkingToBuilding");
     }
 
     // ---- Called when assigned to a ConstructionSite ----
@@ -285,9 +301,9 @@ public class BumpkinController : MonoBehaviour
             var dropOff = _targetDropOff;
             _targetDropOff = null;
             dropOff.Deliver(this);
-            var millAnim  = dropOff.GetComponentInChildren<MillAnimator>();
-            var dairyAnim = dropOff.GetComponentInChildren<DairyAnimator>();
-            StartCoroutine(EnterBuildingWithDoor(Random.Range(1.5f, 3f), millAnim, dairyAnim));
+            var anim = GetBuildingAnimators(dropOff.gameObject);
+            Vector2 bCenter = (Vector2)dropOff.transform.position;
+            StartCoroutine(EnterBuildingWithDoor(Random.Range(1.5f, 3f), bCenter, anim.mill, anim.dairy, anim.house, anim.toolshed));
         }
         else if (_currentState == "WalkingToCampfire")
         {
@@ -297,9 +313,15 @@ public class BumpkinController : MonoBehaviour
         }
         else if (_currentState == "WalkingToBuilding")
         {
-            // Enter building — disappear briefly
+            var anim    = _targetBuilding != null
+                ? GetBuildingAnimators(_targetBuilding.gameObject)
+                : (null, null, null, null);
+            Vector2 bCenter = _targetBuilding != null
+                ? (Vector2)_targetBuilding.transform.position
+                : (Vector2)transform.position;
+            _targetBuilding = null;
             if (_hideCoroutine != null) StopCoroutine(_hideCoroutine);
-            _hideCoroutine = StartCoroutine(HideInBuilding(Random.Range(3f, 6f)));
+            StartCoroutine(EnterBuildingWithDoor(Random.Range(3f, 6f), bCenter, anim.mill, anim.dairy, anim.house, anim.toolshed));
         }
         else if (_currentState == "WalkingToEgg")
         {
@@ -316,8 +338,9 @@ public class BumpkinController : MonoBehaviour
             // Man: verdwijn kort, dan Idle. Vrouw: wacht op BabySystem.ReleaseFromBaby.
             if (IsMale)
             {
-                if (_hideCoroutine != null) StopCoroutine(_hideCoroutine);
-                _hideCoroutine = StartCoroutine(HideInBuilding(Random.Range(2f, 4f)));
+                var anim    = _targetHouse != null ? GetBuildingAnimators(_targetHouse.gameObject) : (null, null, null, null);
+                Vector2 bCenter = _targetHouse != null ? (Vector2)_targetHouse.transform.position : (Vector2)transform.position;
+                StartCoroutine(EnterBuildingWithDoor(Random.Range(2f, 4f), bCenter, anim.mill, anim.dairy, anim.house, anim.toolshed));
             }
             // Female werd gestuurd via AssignToMakeBaby — BabySystem handelt haar af
         }
@@ -387,66 +410,71 @@ public class BumpkinController : MonoBehaviour
         SetState("Idle");
     }
 
-    private IEnumerator EnterBuildingWithDoor(float seconds, MillAnimator mill, DairyAnimator dairy)
+    private (MillAnimator mill, DairyAnimator dairy, HouseAnimator house, ToolshedAnimator toolshed)
+        GetBuildingAnimators(GameObject root)
+    {
+        return (
+            root.GetComponentInChildren<MillAnimator>(),
+            root.GetComponentInChildren<DairyAnimator>(),
+            root.GetComponentInChildren<HouseAnimator>(),
+            root.GetComponentInChildren<ToolshedAnimator>()
+        );
+    }
+
+    private IEnumerator EnterBuildingWithDoor(float seconds, Vector2 buildingCenter, MillAnimator mill, DairyAnimator dairy,
+        HouseAnimator house = null, ToolshedAnimator toolshed = null)
     {
         _cancelEntry = false;
         if (_hideCoroutine != null) { StopCoroutine(_hideCoroutine); _hideCoroutine = null; }
 
-        // Open door first, let player see the unit step in
-        mill?.OpenDoor();
-        dairy?.OpenDoor();
-        yield return new WaitForSeconds(0.2f);
-        if (_cancelEntry) { mill?.CloseDoor(); dairy?.CloseDoor(); yield break; }
+        void OpenAll()  { mill?.OpenDoor(); dairy?.OpenDoor(); house?.OpenDoor(); toolshed?.OpenDoor(); }
+        void CloseAll() { mill?.CloseDoor(); dairy?.CloseDoor(); house?.CloseDoor(); toolshed?.CloseDoor(); }
 
-        // Walk directly into the building (bypasses navgrid)
-        Vector2 doorPos     = (Vector2)transform.position;          // remember exit spot
-        Vector2 enterTarget = doorPos + new Vector2(-0.35f, 0.52f);
-        Vector2 startPos    = transform.position;
-        MoveDirection = (enterTarget - startPos).normalized;
+        // Open door first, let player see the unit step in
+        OpenAll();
+        yield return new WaitForSeconds(0.2f);
+        if (_cancelEntry) { CloseAll(); yield break; }
+
+        // Walk directly into the building toward building center (bypasses navgrid)
+        Vector2 doorPos     = (Vector2)transform.position;
+        Vector2 dir         = (buildingCenter - doorPos);
+        Vector2 enterTarget = doorPos + (dir.sqrMagnitude > 0.001f ? dir.normalized : Vector2.up) * 0.55f;
+        MoveDirection = (enterTarget - doorPos).normalized;
         while (Vector2.Distance((Vector2)transform.position, enterTarget) > 0.02f)
         {
-            if (_cancelEntry) { mill?.CloseDoor(); dairy?.CloseDoor(); yield break; }
+            if (_cancelEntry) { CloseAll(); yield break; }
             transform.position = Vector2.MoveTowards(transform.position, enterTarget, EffectiveSpeed * Time.deltaTime);
             yield return null;
         }
         transform.position = enterTarget;
-        if (_cancelEntry) { mill?.CloseDoor(); dairy?.CloseDoor(); yield break; }
+        if (_cancelEntry) { CloseAll(); yield break; }
 
         var sr = GetComponentInChildren<SpriteRenderer>();
         if (sr) sr.enabled = false;
-        // Close door once unit is fully inside
-        mill?.CloseDoor();
-        dairy?.CloseDoor();
+        CloseAll();
         SetStateRaw("InBuilding");
 
         if (!freeWill)
         {
-            // Stay inside indefinitely; cancelled only by MoveTo (which sets _cancelEntry)
             while (!_cancelEntry) yield return null;
-            // Re-open door to exit
-            mill?.OpenDoor();
-            dairy?.OpenDoor();
+            OpenAll();
             yield return new WaitForSeconds(0.2f);
             transform.position = doorPos;
             if (sr) sr.enabled = true;
-            SetStateRaw("Walking");  // now safe to show unit at door
+            SetStateRaw("Walking");
             yield return new WaitForSeconds(0.3f);
-            mill?.CloseDoor();
-            dairy?.CloseDoor();
+            CloseAll();
             yield break;
         }
 
         yield return new WaitForSeconds(seconds);
 
-        // Re-open door to exit
-        mill?.OpenDoor();
-        dairy?.OpenDoor();
+        OpenAll();
         yield return new WaitForSeconds(0.2f);
         transform.position = doorPos;
         if (sr) sr.enabled = true;
         yield return new WaitForSeconds(0.3f);
-        mill?.CloseDoor();
-        dairy?.CloseDoor();
+        CloseAll();
         _justExitedBuilding = true;
         ExitBuilding();
     }
@@ -617,7 +645,8 @@ public class BumpkinController : MonoBehaviour
                 if (tags.Length > 0)
                 {
                     var picked = tags[Random.Range(0, tags.Length)];
-                    _target = picked.transform.position;
+                    _targetBuilding = picked;
+                    _target = (Vector2)picked.transform.position + picked.doorOffset;
                     _moving = true;
                     ComputePath(_target);
                     SetStateRaw("WalkingToBuilding");
@@ -655,14 +684,14 @@ public class BumpkinController : MonoBehaviour
 
                 // Male loopt naar huis
                 _targetHouse = freeHouse;
-                _target = freeHouse.transform.position;
+                _target = (Vector2)freeHouse.transform.position + freeHouse.doorOffset;
                 _moving = true;
                 ComputePath(_target);
                 SetStateRaw("WalkingToMakeBaby");
 
                 // Female loopt ook naar huis
                 idleFemale._targetHouse = freeHouse;
-                idleFemale._target = (Vector2)freeHouse.transform.position + new Vector2(0.1f, 0f);
+                idleFemale._target = (Vector2)freeHouse.transform.position + freeHouse.doorOffset;
                 idleFemale._moving = true;
                 idleFemale.ComputePath(idleFemale._target);
                 idleFemale.SetStateRaw("WalkingToMakeBabyFemale");

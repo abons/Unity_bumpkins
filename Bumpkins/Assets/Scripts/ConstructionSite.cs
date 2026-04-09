@@ -24,6 +24,8 @@ public class ConstructionSite : MonoBehaviour
     private int _currentWorkers;
     private SpriteRenderer       _buildingSr;
     private List<WorkCell>       _workCells  = new List<WorkCell>();
+    private Vector2Int           _gridPos;   // bottom-left footprint tile, set by InitWorkCells
+    private MapLayoutData        _layout;
     private Sprite _pickSprite, _sawSprite, _vrockSprite, _vsawSprite, _bricksSprite, _planksSprite;
 
     // ---- Unity ----
@@ -115,6 +117,11 @@ public class ConstructionSite : MonoBehaviour
             case BuildingType.House:
                 var tag = gameObject.AddComponent<BuildingTag>();
                 tag.isHouse = true;
+                if (_layout != null)
+                {
+                    Vector2 hExit = _layout.TileToWorld(_gridPos.x - 1, _gridPos.y); // SW door
+                    tag.doorOffset = hExit - (Vector2)transform.position;
+                }
                 _buildingSr?.gameObject.AddComponent<HouseAnimator>();
                 SpawnBumpkin();
                 break;
@@ -122,6 +129,11 @@ public class ConstructionSite : MonoBehaviour
             case BuildingType.Toolshed:
                 var tag2 = gameObject.AddComponent<BuildingTag>();
                 tag2.isHouse = false;
+                if (_layout != null)
+                {
+                    Vector2 tExit = _layout.TileToWorld(_gridPos.x, _gridPos.y - 1); // SE door
+                    tag2.doorOffset = tExit - (Vector2)transform.position;
+                }
                 _buildingSr?.gameObject.AddComponent<ToolshedAnimator>();
                 GameManager.Instance?.UnlockMill();
                 break;
@@ -137,6 +149,11 @@ public class ConstructionSite : MonoBehaviour
                 _buildingSr?.gameObject.AddComponent<DairyAnimator>();
                 var dairyDrop = gameObject.AddComponent<DropOffNode>();
                 dairyDrop.dropOffType = DropOffNode.DropOffType.Dairy;
+                if (_layout != null)
+                {
+                    Vector2 dExit = _layout.TileToWorld(_gridPos.x - 1, _gridPos.y); // SW door
+                    dairyDrop.doorOffset = dExit - (Vector2)transform.position;
+                }
                 break;
 
             case BuildingType.ChickenCoop:
@@ -202,6 +219,8 @@ public class ConstructionSite : MonoBehaviour
     public void InitWorkCells(Vector2Int gridPos, MapLayoutData layout)
     {
         if (layout == null) return;
+        _gridPos = gridPos;
+        _layout  = layout;
 
         _pickSprite   = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Buildings/pick");
         _sawSprite    = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Buildings/saw");

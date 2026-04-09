@@ -89,6 +89,17 @@ public class ClickHandler : MonoBehaviour
             return;
         }
 
+        // BuildingTag aangeklikt → stuur geselecteerde bumpkin naar binnen
+        var buildingTag = go.GetComponent<BuildingTag>();
+        if (buildingTag == null) buildingTag = go.GetComponentInParent<BuildingTag>();
+        if (buildingTag != null && buildingTag.enterable)
+        {
+            var sel = SelectionManager.Instance?.SelectedBumpkin;
+            if (sel != null)
+                sel.AssignToBuilding(buildingTag);
+            return;
+        }
+
         // ConstructionSite aangeklikt → stuur geselecteerde male bumpkin erheen
         var site = go.GetComponent<ConstructionSite>();
         if (site != null && site.CanBeWorked)

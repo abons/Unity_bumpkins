@@ -396,6 +396,11 @@ public class GridMapBuilder : MonoBehaviour
             {
                 var tag = root.AddComponent<BuildingTag>();
                 tag.isHouse = (b.type == BuildingType.House);
+                // Door exit tile (mirrors PatchDoorExitRoads / BuildManager.DoorExit)
+                Vector2 exitWorld = b.type == BuildingType.House
+                    ? layout.TileToWorld(b.position.x - 1, b.position.y)   // SW
+                    : layout.TileToWorld(b.position.x,     b.position.y - 1); // SE
+                tag.doorOffset = exitWorld - (Vector2)center;
             }
 
             // Huis deur animatie
@@ -420,7 +425,14 @@ public class GridMapBuilder : MonoBehaviour
 
             // Dairy deur animatie
             if (b.type == BuildingType.Dairy)
+            {
                 visual.AddComponent<DairyAnimator>();
+                var dairyDrop = root.AddComponent<DropOffNode>();
+                dairyDrop.dropOffType = DropOffNode.DropOffType.Dairy;
+                // Door exit = SW tile (col-1, row)
+                Vector2 dairyExit = layout.TileToWorld(b.position.x - 1, b.position.y);
+                dairyDrop.doorOffset = dairyExit - (Vector2)center;
+            }
 
             // ProductionNode op WheatField en Cow
             if (b.type == BuildingType.WheatField)
