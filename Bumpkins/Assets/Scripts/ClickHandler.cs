@@ -116,7 +116,7 @@ public class ClickHandler : MonoBehaviour
             var sel = SelectionManager.Instance?.SelectedBumpkin;
             if (sel != null && sel.IsMale)
             {
-                var cell = site.TryReserveWorker(sel);
+                var cell = site.TryReserveWorker(sel, (Vector2)sel.transform.position);
                 if (cell != null)
                     sel.AssignToConstruction(site, cell);
             }

@@ -8,9 +8,14 @@ using UnityEngine;
 public class ToolshedAnimator : MonoBehaviour
 {
     private SpriteRenderer _doorSr;
+    private AudioSource    _audioSource;
 
     void Start()
     {
+        _audioSource          = gameObject.AddComponent<AudioSource>();
+        _audioSource.playOnAwake  = false;
+        _audioSource.spatialBlend = 0f;
+
         var sr = GetComponent<SpriteRenderer>();
         int baseSort = sr != null ? sr.sortingOrder : 0;
 
@@ -57,6 +62,9 @@ public class ToolshedAnimator : MonoBehaviour
     {
         if (_doorSr != null) _doorSr.enabled = false;
     }
+
+    public void StartSaw() { }
+    public void StopSaw()  { }
 }
 
 /// <summary>Kleine helper op de root collider van het Toolshed gebouw.</summary>

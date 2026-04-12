@@ -23,6 +23,11 @@ public class ProductionNode : MonoBehaviour
     [Header("Visual")]
     public SpriteRenderer visualSpriteRenderer;   // gezet door GridMapBuilder
 
+    [Header("Audio")]
+    private AudioClip   _harvestClip;
+    private AudioClip   _milkClip;
+    private AudioSource _audioSource;
+
     [Header("State")]
     [SerializeField] private bool   _occupied;
     [SerializeField] private float  _workTimer;
@@ -35,6 +40,12 @@ public class ProductionNode : MonoBehaviour
 
     void Start()
     {
+        _harvestClip             = Resources.Load<AudioClip>("Audio/harvest_wheat");
+        _milkClip                = Resources.Load<AudioClip>("Audio/cow_milking");
+        _audioSource             = gameObject.AddComponent<AudioSource>();
+        _audioSource.playOnAwake  = false;
+        _audioSource.spatialBlend = 0f;
+
         if (GameManager.Instance != null)
         {
             var cfg = GameManager.Instance.config;
@@ -141,15 +152,24 @@ public class ProductionNode : MonoBehaviour
     public void StartWork(BumpkinController worker)
     {
         _worker    = worker;
-        _occupied  = true;  // ook hier voor de zekerheid
+        _occupied  = true;
         _workTimer = 0f;
         Debug.Log($"[Node:{nodeType}] Work started by {worker.bumpkinType}");
         if (nodeType == NodeType.Cow)
+        {
             GetComponentInChildren<CowAnimator>()?.SetMilking(true);
+            if (_milkClip != null) { _audioSource.clip = _milkClip; _audioSource.loop = true; _audioSource.Play(); }
+        }
+        else if (nodeType == NodeType.WheatField)
+        {
+            if (_harvestClip != null) { _audioSource.clip = _harvestClip; _audioSource.loop = true; _audioSource.Play(); }
+        }
     }
 
     private void ProduceYield()
     {
+        _audioSource.Stop();
+
         switch (nodeType)
         {
             case NodeType.WheatField:

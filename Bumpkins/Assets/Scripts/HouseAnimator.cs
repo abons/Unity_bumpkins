@@ -8,9 +8,18 @@ using UnityEngine;
 public class HouseAnimator : MonoBehaviour
 {
     private SpriteRenderer _doorSr;
+    private AudioClip _clipOpen;
+    private AudioClip _clipClose;
+    private AudioSource _audioSource;
 
     void Start()
     {
+        _clipOpen  = Resources.Load<AudioClip>("Audio/door_open");
+        _clipClose = Resources.Load<AudioClip>("Audio/door_close");
+        _audioSource = gameObject.AddComponent<AudioSource>();
+        _audioSource.playOnAwake = false;
+        _audioSource.spatialBlend = 0f;
+
         var sr = GetComponent<SpriteRenderer>();
         int baseSort = sr != null ? sr.sortingOrder : 0;
 
@@ -51,11 +60,13 @@ public class HouseAnimator : MonoBehaviour
     public void OpenDoor()
     {
         if (_doorSr != null) _doorSr.enabled = true;
+        if (_clipOpen != null) _audioSource.PlayOneShot(_clipOpen);
     }
 
     public void CloseDoor()
     {
         if (_doorSr != null) _doorSr.enabled = false;
+        if (_clipClose != null) _audioSource.PlayOneShot(_clipClose);
     }
 }
 

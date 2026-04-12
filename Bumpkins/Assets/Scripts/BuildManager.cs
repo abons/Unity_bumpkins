@@ -434,8 +434,12 @@ public class BuildManager : MonoBehaviour
         }
 
         // ConstructionSite handles the rest (props, stages, final activation)
-        // ChickenCoop wordt direct geplaatst, geen bouw nodig
-        if (type == BuildingType.ChickenCoop)
+        // ChickenCoop en WheatField worden direct geplaatst, geen bouw nodig
+        if (type == BuildingType.WheatField)
+        {
+            // WheatField verschijnt direct, geen constructie-pipeline
+        }
+        else if (type == BuildingType.ChickenCoop)
         {
             // Spawn chicken direct op het gebouw
             var chickenGo = new GameObject("Chicken");

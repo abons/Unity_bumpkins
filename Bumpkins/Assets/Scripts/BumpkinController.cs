@@ -388,6 +388,7 @@ public class BumpkinController : MonoBehaviour
             if (_targetSite != null && _targetSite.CurrentStage != ConstructionSite.Stage.Done)
             {
                 _targetWorkCell?.Activate();  // show active sprite now that we've arrived; bumpkin hides below
+                _targetSite.StartWork(_targetWorkCell);
                 SetStateRaw("Constructing");
                 StartCoroutine(DoConstruction());
             }
@@ -486,10 +487,12 @@ public class BumpkinController : MonoBehaviour
         if (sr) sr.enabled = false;
         CloseAll();
         SetStateRaw("InBuilding");
+        toolshed?.StartSaw();
 
         if (!freeWill)
         {
             while (!_cancelEntry) yield return null;
+            toolshed?.StopSaw();
             OpenAll();
             yield return new WaitForSeconds(0.2f);
             transform.position = doorPos;
@@ -502,6 +505,7 @@ public class BumpkinController : MonoBehaviour
 
         yield return new WaitForSeconds(seconds);
 
+        toolshed?.StopSaw();
         OpenAll();
         yield return new WaitForSeconds(0.2f);
         transform.position = doorPos;
@@ -646,7 +650,7 @@ public class BumpkinController : MonoBehaviour
             }
             if (bestSite != null)
             {
-                var cell = bestSite.TryReserveWorker(this);
+                var cell = bestSite.TryReserveWorker(this, (Vector2)transform.position);
                 if (cell != null)
                 {
                     AssignToConstruction(bestSite, cell);

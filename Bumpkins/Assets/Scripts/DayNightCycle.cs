@@ -20,6 +20,10 @@ public class DayNightCycle : MonoBehaviour
     Color    _currentOverlay = Color.clear;
 
     float _cycleTime;
+    bool  _wasNight = false;
+
+    AudioClip   _dayStartClip;
+    AudioSource _audioSource;
 
     /// <summary>True while the cycle is closer to night than to day.</summary>
     public bool IsNight { get; private set; }
@@ -65,6 +69,11 @@ public class DayNightCycle : MonoBehaviour
         _glMaterial.SetInt("_Cull",      (int)UnityEngine.Rendering.CullMode.Off);
         _glMaterial.SetInt("_ZWrite",    0);
         _glMaterial.SetInt("_ZTest",     (int)UnityEngine.Rendering.CompareFunction.Always);
+
+        _dayStartClip            = Resources.Load<AudioClip>("Audio/day_start");
+        _audioSource             = gameObject.AddComponent<AudioSource>();
+        _audioSource.playOnAwake  = false;
+        _audioSource.spatialBlend = 0f;
     }
 
     void OnDestroy()
@@ -104,6 +113,10 @@ public class DayNightCycle : MonoBehaviour
 
         NightBlend = Mathf.SmoothStep(0f, 1f, raw);
         IsNight    = raw >= 0.5f;
+
+        if (_wasNight && !IsNight)
+            if (_dayStartClip != null) _audioSource.PlayOneShot(_dayStartClip);
+        _wasNight = IsNight;
 
         Color nightTint = cfg.nightLightColor;
         nightTint.a     = NightBlend * (1f - cfg.nightLightIntensity);

@@ -21,6 +21,9 @@ public class ChickenAnimator : MonoBehaviour
     [Header("Egg production")]
     public float eggInterval  = 10f;  // seconden tot eerste/volgend ei
 
+    private AudioClip   _eggClip;
+    private AudioSource _audioSource;
+
     private SpriteRenderer _sr;
     private SpriteRenderer _eggSr;      // apart ei-object naast de kip
     private Vector3        _basePos;
@@ -41,8 +44,12 @@ public class ChickenAnimator : MonoBehaviour
         _walkTimer = Random.Range(0f, walkInterval);
         _eggTimer  = eggInterval + Random.Range(0f, 3f);
 
-        _sprChicken = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/Chicken");
-        _sprEgg     = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/ChickenEgg");
+        _sprChicken  = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/Chicken");
+        _sprEgg      = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/Units/ChickenEgg");
+        _eggClip     = Resources.Load<AudioClip>("Audio/chicken_lay_egg");
+        _audioSource = gameObject.AddComponent<AudioSource>();
+        _audioSource.playOnAwake  = false;
+        _audioSource.spatialBlend = 0f;
 
         if (_sr != null && _sprChicken != null)
             _sr.sprite = _sprChicken;
@@ -110,6 +117,7 @@ public class ChickenAnimator : MonoBehaviour
     {
         _hasEgg = true;
         if (_eggSr != null) _eggSr.enabled = true;   // ei verschijnt naast kip
+        if (_eggClip != null) _audioSource.PlayOneShot(_eggClip);
         Debug.Log($"[ChickenAnimator] {transform.parent?.name} legt een ei!");
     }
 

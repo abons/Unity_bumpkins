@@ -19,7 +19,7 @@ public class ConstructionSite : MonoBehaviour
     public Stage CurrentStage { get; private set; }
     public bool  CanBeWorked  => CurrentStage != Stage.Done
                               && _currentWorkers < maxWorkers
-                              && GetFreeCell() != null;
+                              && HasFreeCell();
 
     private int _currentWorkers;
     private SpriteRenderer       _buildingSr;
@@ -27,6 +27,11 @@ public class ConstructionSite : MonoBehaviour
     private Vector2Int           _gridPos;   // bottom-left footprint tile, set by InitWorkCells
     private MapLayoutData        _layout;
     private Sprite _pickSprite, _sawSprite, _vrockSprite, _vsawSprite, _bricksSprite, _planksSprite;
+    private AudioClip   _hitClip;
+    private AudioClip   _sawClip;
+    private AudioClip   _completeClip;
+    private AudioSource _audioSource;
+    private AudioSource _sawAudioSource;
 
     // ---- Unity ----
 
@@ -38,6 +43,16 @@ public class ConstructionSite : MonoBehaviour
             _buildingSr.enabled = false;
 
         CurrentStage = Stage.Resources;
+
+        _hitClip      = Resources.Load<AudioClip>("Audio/construction_pick");
+        _sawClip       = Resources.Load<AudioClip>("Audio/construction_saw");
+        _completeClip  = Resources.Load<AudioClip>("Audio/building_complete");
+        _audioSource   = gameObject.AddComponent<AudioSource>();
+        _audioSource.playOnAwake  = false;
+        _audioSource.spatialBlend = 0f;
+        _sawAudioSource = gameObject.AddComponent<AudioSource>();
+        _sawAudioSource.playOnAwake  = false;
+        _sawAudioSource.spatialBlend = 0f;
 
         // Auto-assign idle males
         StartCoroutine(AutoAssignNextFrame());
@@ -56,11 +71,11 @@ public class ConstructionSite : MonoBehaviour
     /// Try to assign a male or worker bumpkin to a free workcell.
     /// Returns the reserved WorkCell, or null if none available.
     /// </summary>
-    public WorkCell TryReserveWorker(BumpkinController b)
+    public WorkCell TryReserveWorker(BumpkinController b, Vector2 fromPos)
     {
         if (!b.IsMale && !b.IsWorker) return null;
         if (!CanBeWorked) return null;
-        var cell = GetFreeCell();
+        var cell = GetNearestFreeCell(fromPos);
         if (cell == null) return null;
         cell.TryOccupy();
         _currentWorkers++;
@@ -71,10 +86,29 @@ public class ConstructionSite : MonoBehaviour
     public float GetWorkDuration(BumpkinController b)
         => b.IsWorker ? workDuration / 3f : workDuration;
 
+    /// <summary>Called by bumpkin when it arrives and starts working.</summary>
+    public void StartWork(WorkCell cell)
+    {
+        if (cell != null && cell.Kind == WorkCell.CellKind.Side)
+        {
+            if (_sawClip != null) { _sawAudioSource.clip = _sawClip; _sawAudioSource.loop = true; _sawAudioSource.Play(); }
+        }
+        else
+        {
+            if (_hitClip != null) { _audioSource.clip = _hitClip; _audioSource.loop = true; _audioSource.Play(); }
+        }
+    }
+
     /// <summary>Called by bumpkin after finishing one work trip.</summary>
     public void DeliverWork(WorkCell cell)
     {
         _currentWorkers = Mathf.Max(0, _currentWorkers - 1);
+
+        if (cell != null && cell.Kind == WorkCell.CellKind.Side)
+            _sawAudioSource.Stop();
+        else
+            _audioSource.Stop();
+
         cell?.MarkDone();
 
         if (AllCellsDone())
@@ -96,6 +130,7 @@ public class ConstructionSite : MonoBehaviour
     private void Complete()
     {
         CurrentStage = Stage.Done;
+        if (_completeClip != null) _audioSource.PlayOneShot(_completeClip);
 
         if (_buildingSr != null)
         {
@@ -217,11 +252,24 @@ public class ConstructionSite : MonoBehaviour
 
     // ---- WorkCells ----
 
-    private WorkCell GetFreeCell()
+    private bool HasFreeCell()
     {
         foreach (var c in _workCells)
-            if (c != null && !c.IsOccupied && !c.IsDone) return c;
-        return null;
+            if (c != null && !c.IsOccupied && !c.IsDone) return true;
+        return false;
+    }
+
+    private WorkCell GetNearestFreeCell(Vector2 fromPos)
+    {
+        WorkCell best = null;
+        float bestDist = float.MaxValue;
+        foreach (var c in _workCells)
+        {
+            if (c == null || c.IsOccupied || c.IsDone) continue;
+            float d = Vector2.SqrMagnitude((Vector2)c.transform.position - fromPos);
+            if (d < bestDist) { bestDist = d; best = c; }
+        }
+        return best;
     }
 
     /// <summary>
@@ -316,7 +364,7 @@ public class ConstructionSite : MonoBehaviour
             if (!CanBeWorked) break;
             if (!b.IsMale && !b.IsWorker) continue;
             if (b.CurrentState != "Idle") continue;
-            var cell = TryReserveWorker(b);
+            var cell = TryReserveWorker(b, (Vector2)b.transform.position);
             if (cell != null)
                 b.AssignToConstruction(this, cell);
         }
