@@ -57,6 +57,20 @@ public class GameManager : MonoBehaviour
 
     public void SetGold(int amount) { Gold = amount; }
 
+    /// <summary>Restore full game state from a save file.</summary>
+    public void LoadState(int gold, int bread, int milk, int eggs, int wheat,
+                          float happiness, bool millUnlocked, bool dairyUnlocked)
+    {
+        Gold          = gold;
+        Bread         = bread;
+        Milk          = milk;
+        EggStock      = eggs;
+        WheatStored   = wheat;
+        Happiness     = happiness;
+        MillUnlocked  = millUnlocked;
+        DairyUnlocked = dairyUnlocked;
+    }
+
     // ---- Building unlocks ----
     public void UnlockMill()  { MillUnlocked  = true; Debug.Log("[GM] Molen ontgrendeld!"); }
     public void UnlockDairy() { DairyUnlocked = true; Debug.Log("[GM] Zuivelfabriek ontgrendeld!"); }

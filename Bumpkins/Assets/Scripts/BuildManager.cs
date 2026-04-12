@@ -479,6 +479,39 @@ public class BuildManager : MonoBehaviour
         Debug.Log($"[BuildManager] {type} geplaatst op ({gridPos.x},{gridPos.y})");
     }
 
+    /// <summary>
+    /// Place a fully-completed building without gold cost (used by save/load).
+    /// </summary>
+    public void PlaceSaved(Vector2Int gridPos, BuildingType type)
+    {
+        if (_layout == null) return;
+
+        // Mark occupied tiles
+        var (fpW, fpH) = FootprintFor(type);
+        var (ox, oy)   = FootprintOffsetFor(type);
+        for (int dr = 0; dr < fpH; dr++)
+        for (int dc = 0; dc < fpW; dc++)
+        {
+            var tile = new Vector2Int(gridPos.x + ox + dc, gridPos.y + oy + dr);
+            _occupiedTiles.Add(tile);
+            NavGrid.SetBlocked(tile.x, tile.y, true);
+        }
+
+        // Temporarily set SelectedType so PlaceBuilding footprint helpers work
+        var prev = SelectedType;
+        SelectedType = type;
+        PlaceBuilding(gridPos, type);
+        SelectedType = prev;
+
+        // Immediately complete construction
+        var go = GameObject.Find($"{type}_{gridPos.x}_{gridPos.y}");
+        if (go != null)
+        {
+            var site = go.GetComponent<ConstructionSite>();
+            site?.InstantComplete();
+        }
+    }
+
     // ---- Validation ----
 
     private bool IsValidPlacement(Vector2Int gridPos, bool log = false)

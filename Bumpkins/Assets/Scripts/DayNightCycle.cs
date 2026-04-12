@@ -36,6 +36,18 @@ public class DayNightCycle : MonoBehaviour
     [System.NonSerialized] public float DebugSpeedMultiplier = 1f;
     [System.NonSerialized] public bool  DebugPaused          = false;
 
+    /// <summary>Expose internal time for saving.</summary>
+    public float SavedCycleTime        => _cycleTime;
+    public int   SavedCompletedCycles  => _completedCycles;
+
+    /// <summary>Restore cycle time and season from a save file.</summary>
+    public void LoadState(float cycleTime, int completedCycles, Season season)
+    {
+        _cycleTime       = cycleTime;
+        _completedCycles = completedCycles;
+        CurrentSeason    = season;
+    }
+
     public void DebugJumpToDay()   { var cfg = GameManager.Instance?.config; if (cfg != null) _cycleTime = 0f; }
     public void DebugJumpToNight() { var cfg = GameManager.Instance?.config; if (cfg != null) _cycleTime = cfg.dayDuration; }
     public void DebugNextSeason()  { _completedCycles++; CurrentSeason = (Season)(_completedCycles % 4); _cycleTime = 0f; }

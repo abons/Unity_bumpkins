@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// HUD via OnGUI — geen Canvas, geen RectTransform, geen artefacten.
@@ -22,6 +23,12 @@ public class UIManager : MonoBehaviour
     // ---- Toolshed panel ----
     private BuildingTag _selectedToolshed;
 
+    // ---- In-game menu overlay ----
+    private bool _menuOpen;
+    private GUIStyle _menuOverlayStyle;
+    private GUIStyle _menuTitleStyle;
+    private GUIStyle _menuBtnStyle;
+
     public void OpenToolshedPanel(BuildingTag tag)  { _selectedToolshed = tag; }
     public void CloseToolshedPanel()                { _selectedToolshed = null; }
 
@@ -44,12 +51,7 @@ public class UIManager : MonoBehaviour
         if (GameManager.Instance == null) return;
         if (_style == null) BuildStyle();
 
-        // Scale UI to reference resolution
-        float sx = Screen.width  / RefWidth;
-        float sy = Screen.height / RefHeight;
-        float s  = Mathf.Min(sx, sy);
-        GUI.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(s, s, 1f));
-        _mousePosRef = Event.current.mousePosition / s;
+        _mousePosRef = Event.current.mousePosition;
 
         var gm = GameManager.Instance;
         bool overGUI = false;
@@ -60,6 +62,32 @@ public class UIManager : MonoBehaviour
         GUI.Label(new Rect(x, y + h*2, 240, h), $"Milk:  {gm.Milk}",       _style);
         GUI.Label(new Rect(x, y + h*3, 240, h), $"Eggs:  {gm.EggStock}",   _style);
         GUI.Label(new Rect(x, y + h*4, 240, h), $"Wheat: {gm.WheatStored}",_style);
+
+        // ---- Menu button (bottom-left) ----
+        var menuRect = new Rect(x, Screen.height - 36, 80, 26);
+        overGUI |= menuRect.Contains(_mousePosRef);
+        if (_btnStyle == null) BuildBtnStyle(true);
+        Color prevColor = _btnStyle.normal.textColor;
+        _btnStyle.normal.textColor  = Color.white;
+        _btnStyle.focused.textColor = Color.white;
+        _btnStyle.hover.textColor   = Color.white;
+        if (GUI.Button(menuRect, "Menu", _btnStyle))
+        {
+            _menuOpen = true;
+            Time.timeScale = 0f;
+        }
+        _btnStyle.normal.textColor  = prevColor;
+        _btnStyle.focused.textColor = prevColor;
+        _btnStyle.hover.textColor   = prevColor;
+
+        // ---- In-game menu overlay ----
+        if (_menuOpen)
+        {
+            overGUI = true;
+            DrawMenuOverlay();
+            IsPointerOverGUI = true;
+            return;
+        }
 
         // ---- Build menu ----
         overGUI |= DrawBuildMenu(gm);
@@ -75,7 +103,7 @@ public class UIManager : MonoBehaviour
         DrawSeasonIcon();
 
         // ---- Paused label ----
-        if (Time.timeScale == 0f)
+        if (Time.timeScale == 0f && !_menuOpen)
         {
             if (_pauseStyle == null)
             {
@@ -85,7 +113,7 @@ public class UIManager : MonoBehaviour
                 _pauseStyle.alignment = TextAnchor.UpperCenter;
                 _pauseStyle.normal.textColor = Color.yellow;
             }
-            GUI.Label(new Rect(0, 6, RefWidth, 40), "GEPAUZEERD", _pauseStyle);
+            GUI.Label(new Rect(0, 6, Screen.width, 40), "GEPAUZEERD", _pauseStyle);
         }
 
         var sel = SelectionManager.Instance?.SelectedBumpkin;
@@ -93,7 +121,7 @@ public class UIManager : MonoBehaviour
 
         // Naam + state onderin midden
         string info = $"{sel.name}  [{sel.CurrentState}]";
-        GUI.Label(new Rect(RefWidth / 2f - 150, RefHeight - 32, 300, 26), info, _style);
+        GUI.Label(new Rect(Screen.width / 2f - 150, Screen.height - 32, 300, 26), info, _style);
 
         // Freewill toggle rechtsbovenin
         if (_btnStyle == null) BuildBtnStyle(sel.freeWill);
@@ -101,7 +129,7 @@ public class UIManager : MonoBehaviour
         _btnStyle.focused.textColor = _btnStyle.normal.textColor;
         _btnStyle.hover.textColor   = _btnStyle.normal.textColor;
         string label = sel.freeWill ? "Freewill: AAN" : "Freewill: UIT";
-        var btnRect = new Rect(RefWidth - 160, 10, 150, 32);
+        var btnRect = new Rect(Screen.width - 160, 10, 150, 32);
         overGUI |= btnRect.Contains(_mousePosRef);
         if (GUI.Button(btnRect, label, _btnStyle))
             sel.freeWill = !sel.freeWill;
@@ -118,7 +146,7 @@ public class UIManager : MonoBehaviour
         if (_btnStyle == null) BuildBtnStyle(true);
         bool anyOver = false;
         int bw = 140, bh = 30, gap = 4;
-        int x = (int)(RefWidth / 2f) - (maps.Length * (bw + gap)) / 2;
+        int x = (int)(Screen.width / 2f) - (maps.Length * (bw + gap)) / 2;
         int y = 10;
 
         for (int i = 0; i < maps.Length; i++)
@@ -259,7 +287,7 @@ public class UIManager : MonoBehaviour
         };
 
         float iconW = 56f, iconH = 44f;
-        float ix = RefWidth - iconW - 10f;
+        float ix = Screen.width - iconW - 10f;
         float iy = 10f;
 
         GUI.color = tint;
@@ -280,8 +308,8 @@ public class UIManager : MonoBehaviour
     private bool DrawToolshedPanel(GameManager gm)
     {
         const float pw = 270f, ph = 160f;
-        float px = (RefWidth  - pw) * 0.5f;
-        float py = (RefHeight - ph) * 0.5f;
+        float px = (Screen.width  - pw) * 0.5f;
+        float py = (Screen.height - ph) * 0.5f;
 
         var panel = new Rect(px, py, pw, ph);
         bool anyOver = panel.Contains(_mousePosRef);
@@ -352,6 +380,101 @@ public class UIManager : MonoBehaviour
             _selectedToolshed = null;
 
         return anyOver;
+    }
+
+    private void DrawMenuOverlay()
+    {
+        // Dim background
+        if (_menuOverlayStyle == null)
+        {
+            var tex = new Texture2D(1, 1);
+            tex.SetPixel(0, 0, new Color(0, 0, 0, 0.7f));
+            tex.Apply();
+            _menuOverlayStyle = new GUIStyle();
+            _menuOverlayStyle.normal.background = tex;
+        }
+        GUI.Box(new Rect(0, 0, Screen.width, Screen.height), GUIContent.none, _menuOverlayStyle);
+
+        if (_menuTitleStyle == null)
+        {
+            _menuTitleStyle           = new GUIStyle(GUI.skin.label);
+            _menuTitleStyle.fontSize  = 36;
+            _menuTitleStyle.fontStyle = FontStyle.Bold;
+            _menuTitleStyle.alignment = TextAnchor.MiddleCenter;
+            _menuTitleStyle.normal.textColor = Color.white;
+        }
+        if (_menuBtnStyle == null)
+        {
+            _menuBtnStyle           = new GUIStyle(GUI.skin.button);
+            _menuBtnStyle.fontSize  = 22;
+            _menuBtnStyle.fontStyle = FontStyle.Bold;
+            _menuBtnStyle.fixedHeight = 50;
+        }
+
+        float pw = Mathf.Min(380f, Screen.width * 0.85f);
+        float px = (Screen.width - pw) / 2f;
+
+        // 7 knoppen: bereken stride zodat alles past binnen 80% van de schermhoogte
+        // btnY start op 20%, laatste knop eindigt voor 100%
+        int   btnCount = 7;
+        float available = Screen.height * 0.75f;
+        float sp = available / btnCount;             // stride per knop (bh + gap)
+        float bh = Mathf.Min(50f, sp * 0.82f);      // knophoogte = 82% van stride
+        float btnY = Screen.height * 0.20f;
+
+        int menuFontSize = Mathf.Max(12, Mathf.RoundToInt(bh * 0.44f));
+        _menuBtnStyle.fontSize    = menuFontSize;
+        _menuBtnStyle.fixedHeight = bh;
+        _menuTitleStyle.fontSize  = Mathf.Max(16, Mathf.RoundToInt(Screen.height * 0.055f));
+
+        GUI.Label(new Rect(0, Screen.height * 0.15f, Screen.width, 50), "Beasts & Bumpkins", _menuTitleStyle);
+
+        // Doorgaan
+        _menuBtnStyle.normal.textColor = Color.green;
+        if (GUI.Button(new Rect(px, btnY, pw, 50), "Doorgaan", _menuBtnStyle))
+        {
+            _menuOpen = false;
+            Time.timeScale = 1f;
+        }
+
+        _menuBtnStyle.normal.textColor = Color.white;
+
+        // Opslaan / Laden
+        if (GUI.Button(new Rect(px, btnY + sp * 1f, pw, 50), "Opslaan", _menuBtnStyle))
+        {
+            SaveSystem.Save();
+            _menuOpen = false;
+            Time.timeScale = 1f;
+        }
+
+        bool hasSave = SaveSystem.HasSave;
+        _menuBtnStyle.normal.textColor = hasSave ? Color.white : new Color(0.5f, 0.5f, 0.5f);
+        if (GUI.Button(new Rect(px, btnY + sp * 2f, pw, 50), "Laden", _menuBtnStyle) && hasSave)
+        {
+            Time.timeScale = 1f;
+            SaveSystem.Load();   // reloads scene with pending data
+        }
+        _menuBtnStyle.normal.textColor = Color.white;
+
+        // Map buttons
+        string[] names   = { "Mission1Layout", "Map2Layout", "EnemyTestLayout" };
+        string[] labels  = { "Mission 1",      "Map 2",      "Enemy Test" };
+        var builder = FindFirstObjectByType<GridMapBuilder>();
+        for (int i = 0; i < names.Length; i++)
+        {
+            if (GUI.Button(new Rect(px, btnY + sp * (i + 3), pw, 50), labels[i], _menuBtnStyle))
+            {
+                _menuOpen = false;
+                Time.timeScale = 1f;
+                MapSelection.Select(names[i]);
+                SceneManager.LoadScene("Game");
+            }
+        }
+
+        // Quit
+        _menuBtnStyle.normal.textColor = new Color(1f, 0.4f, 0.4f);
+        if (GUI.Button(new Rect(px, btnY + sp * 6.5f, pw, 50), "Afsluiten", _menuBtnStyle))
+            Application.Quit();
     }
 
     private void BuildStyle()

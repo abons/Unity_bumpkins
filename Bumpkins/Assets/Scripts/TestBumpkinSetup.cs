@@ -95,9 +95,17 @@ public class TestBumpkinSetup : MonoBehaviour
 
         // Pre-select first adult male (or first bumpkin if none)
         SelectionManager.Instance?.Select(firstMale);
+
+        // Apply save data if a load was requested (overwrites bumpkins/resources above)
+        SaveSystem.ApplyPendingLoad();
     }
 
     private BumpkinController SpawnBumpkin(string goName, Vector3 pos, BumpkinController.BumpkinType type, Color color, bool isChild = false)
+    {
+        return SpawnBumpkinPublic(goName, pos, type, isChild);
+    }
+
+    public BumpkinController SpawnBumpkinPublic(string goName, Vector3 pos, BumpkinController.BumpkinType type, bool isChild = false)
     {
         var go = new GameObject(goName);
         go.transform.position = pos;
@@ -107,7 +115,7 @@ public class TestBumpkinSetup : MonoBehaviour
         var spriteName = type == BumpkinController.BumpkinType.Male ? "Units/m_still" : "Units/f_still";
         var sp = Resources.Load<Sprite>($"{GraphicsQuality.SpritePath}/{spriteName}");
         sr.sprite       = sp != null ? sp : MakeSquareSprite();
-        sr.color        = sp != null ? Color.white : color;
+        sr.color        = Color.white;
         sr.sortingOrder = 10;
         go.transform.localScale = isChild ? new Vector3(2f, 2f, 1f) : new Vector3(3f, 3f, 1f);
 

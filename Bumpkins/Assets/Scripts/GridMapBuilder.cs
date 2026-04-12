@@ -33,12 +33,29 @@ public class GridMapBuilder : MonoBehaviour
     void Awake()
     {
         // Resolve layout early (Awake) so other scripts can read it in their Start()
-        if (layout == null)
+        var ui = FindFirstObjectByType<UIManager>();
+
+        // A menu-scene selection overrides the serialized Inspector default.
+        if (!string.IsNullOrEmpty(MapSelection.SelectedLayoutName))
         {
-            var ui = FindFirstObjectByType<UIManager>();
-            if (ui != null && ui.maps != null && ui.maps.Length > 0)
-                layout = ui.maps[0];
+            if (ui != null && ui.maps != null)
+            {
+                foreach (var m in ui.maps)
+                {
+                    if (m != null && m.name == MapSelection.SelectedLayoutName)
+                    {
+                        layout = m;
+                        break;
+                    }
+                }
+            }
+            if (layout == null || layout.name != MapSelection.SelectedLayoutName)
+                Debug.LogWarning($"[GridMapBuilder] MapSelection '{MapSelection.SelectedLayoutName}' not found in UIManager.maps; falling back to serialized default.");
         }
+
+        // If still no layout (no selection and nothing wired in Inspector), use maps[0].
+        if (layout == null && ui != null && ui.maps != null && ui.maps.Length > 0)
+            layout = ui.maps[0];
     }
 
     void Start()

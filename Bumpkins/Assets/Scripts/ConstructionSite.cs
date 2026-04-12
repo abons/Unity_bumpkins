@@ -112,6 +112,15 @@ public class ConstructionSite : MonoBehaviour
         Debug.Log($"[Construction] {buildingType} aan {name}: KLAAR!");
     }
 
+    /// <summary>Skip all construction stages and activate immediately (used by save/load).</summary>
+    public void InstantComplete()
+    {
+        // Mark all cells as done so Complete() can run cleanly
+        foreach (var cell in _workCells)
+            cell?.MarkDone();
+        Complete();
+    }
+
     // ---- Activate final building components ----
 
     private void ActivateBuilding()
