@@ -13,6 +13,9 @@ public enum TileType
     Water     = 5,
     Snow      = 6,
     Sand      = 7,   // Beach / shore transition strip
+    Tree1     = 8,   // tree01 sprite; winter variant: tree05
+    Tree2     = 9,   // tree02 sprite; winter variant: tree04
+    Tree10    = 10,  // tree10 sprite; winter variant: tree11
 }
 
 /// <summary>

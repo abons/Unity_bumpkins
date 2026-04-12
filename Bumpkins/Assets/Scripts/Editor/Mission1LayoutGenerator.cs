@@ -114,24 +114,41 @@ public static class Mission1LayoutGenerator
         SetRect(data,  6, 19,  5,  1, TileType.FarmPlot);
         SetRect(data,  7, 20,  4,  1, TileType.FarmPlot);
 
-        SetRect(data,  5, 15,  8,  1, TileType.Wood);
-        SetRect(data,  5, 16,  8,  1, TileType.Wood);
-        SetRect(data,  5, 17,  8,  1, TileType.Wood);
-        SetRect(data,  5, 18,  7,  1, TileType.Wood);
-        SetRect(data,  6, 19,  5,  1, TileType.Wood);
-        SetRect(data,  7, 20,  4,  1, TileType.Wood);
+        // Row 15: Tree1 cols 5-7, Tree2 cols 8-10, Tree10 cols 11-12
+        SetRect(data,  5, 15,  3,  1, TileType.Tree1);
+        SetRect(data,  8, 15,  3,  1, TileType.Tree2);
+        SetRect(data, 11, 15,  2,  1, TileType.Tree10);
+        // Row 16: Tree10 cols 5-6, Tree1 cols 7-9, Tree2 cols 10-12
+        SetRect(data,  5, 16,  2,  1, TileType.Tree10);
+        SetRect(data,  7, 16,  3,  1, TileType.Tree1);
+        SetRect(data, 10, 16,  3,  1, TileType.Tree2);
+        // Row 17: Tree2 cols 5-7, Tree10 cols 8-10, Tree1 cols 11-12
+        SetRect(data,  5, 17,  3,  1, TileType.Tree2);
+        SetRect(data,  8, 17,  3,  1, TileType.Tree10);
+        SetRect(data, 11, 17,  2,  1, TileType.Tree1);
+        // Row 18: Tree1 cols 5-7, Tree2 cols 8-9, Tree10 cols 10-11
+        SetRect(data,  5, 18,  3,  1, TileType.Tree1);
+        SetRect(data,  8, 18,  2,  1, TileType.Tree2);
+        SetRect(data, 10, 18,  2,  1, TileType.Tree10);
+        // Row 19: Tree10 cols 6-7, Tree1 cols 8-9, Tree2 col 10
+        SetRect(data,  6, 19,  2,  1, TileType.Tree10);
+        SetRect(data,  8, 19,  2,  1, TileType.Tree1);
+        Set(data,     10, 19,         TileType.Tree2);
+        // Row 20: Tree2 cols 7-8, Tree10 cols 9-10
+        SetRect(data,  7, 20,  2,  1, TileType.Tree2);
+        SetRect(data,  9, 20,  2,  1, TileType.Tree10);
 
         // ── NE clearing — scattered trees between forest and cliffs ───
-        Set(data, 17, 15, TileType.Wood);
-        Set(data, 18, 13, TileType.Wood);
-        Set(data, 16, 12, TileType.Wood);
+        Set(data, 17, 15, TileType.Tree1);
+        Set(data, 18, 13, TileType.Tree2);
+        Set(data, 16, 12, TileType.Tree10);
 
         // ── Scattered trees — south grass ─────────────────────────────
-        Set(data, 12,  4, TileType.Wood);
-        Set(data, 14,  5, TileType.Wood);
-        Set(data, 11,  5, TileType.Wood);
-        Set(data, 15,  4, TileType.Wood);
-        Set(data, 10,  4, TileType.Wood);
+        Set(data, 12,  4, TileType.Tree1);
+        Set(data, 14,  5, TileType.Tree2);
+        Set(data, 11,  5, TileType.Tree10);
+        Set(data, 15,  4, TileType.Tree1);
+        Set(data, 10,  4, TileType.Tree2);
 
         // ── V-shaped road — campfire at apex, arms open southward ─────
         // Left arm:  row 12, cols 5-11 (runs lower-left on screen)

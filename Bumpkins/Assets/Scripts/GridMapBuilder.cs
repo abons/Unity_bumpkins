@@ -243,6 +243,15 @@ public class GridMapBuilder : MonoBehaviour
                         var resName = TileResourceName(tile);
                         go = (resName != null ? MakeSprite(resName, center, tileVec, parent, sOrder + 1) : null)
                           ?? MakePlaceholder(TileColor(tile), center, tileVec, parent, sOrder + 1);
+
+                        // Attach seasonal switcher to tree tiles
+                        var (summerPath, winterPath) = SeasonalPaths(tile);
+                        if (summerPath != null && go != null)
+                        {
+                            var seasonal = go.AddComponent<SeasonalTreeTile>();
+                            seasonal.SummerResourcePath = summerPath;
+                            seasonal.WinterResourcePath = winterPath;
+                        }
                     }
                     go.name = $"Tile_{col}_{row}_{tile}";
                 }
@@ -567,16 +576,33 @@ public class GridMapBuilder : MonoBehaviour
     }
 
     // ---- Resource names ----
-    private static string TileResourceName(TileType t) => t switch
+    private static string TileResourceName(TileType t)
     {
-        TileType.Grass    => "Terrain/Grass",
-        TileType.Road     => "Terrain/roads",
-        TileType.FarmPlot => "crops",
-        TileType.Rock     => "Terrain/rock01",
-        TileType.Wood     => "logs",
-        TileType.Water    => "Terrain/Water",
-        TileType.Sand     => "Terrain/Sand",
-        _                 => null,
+        bool isWinter = DayNightCycle.Instance != null
+                     && DayNightCycle.Instance.CurrentSeason == Season.Winter;
+        return t switch
+        {
+            TileType.Grass    => "Terrain/Grass",
+            TileType.Road     => "Terrain/roads",
+            TileType.FarmPlot => "crops",
+            TileType.Rock     => "Terrain/rock01",
+            TileType.Wood     => "logs",
+            TileType.Water    => "Terrain/Water",
+            TileType.Sand     => "Terrain/Sand",
+            TileType.Tree1    => isWinter ? "Terrain/tree05" : "Terrain/tree01",
+            TileType.Tree2    => isWinter ? "Terrain/tree04" : "Terrain/tree02",
+            TileType.Tree10   => isWinter ? "Terrain/tree11" : "Terrain/tree10",
+            _                 => null,
+        };
+    }
+
+    // Returns (summerPath, winterPath) for tree tiles, or (null, null) for non-tree tiles.
+    private static (string summer, string winter) SeasonalPaths(TileType t) => t switch
+    {
+        TileType.Tree1  => ("Terrain/tree01", "Terrain/tree05"),
+        TileType.Tree2  => ("Terrain/tree02", "Terrain/tree04"),
+        TileType.Tree10 => ("Terrain/tree10", "Terrain/tree11"),
+        _               => (null, null),
     };
 
     // ---- Placeholder colors ----
@@ -589,6 +615,9 @@ public class GridMapBuilder : MonoBehaviour
         TileType.Wood     => new Color(0.4f, 0.25f, 0.1f),
         TileType.Water    => new Color(0.25f, 0.35f, 0.75f),
         TileType.Sand     => new Color(0.80f, 0.70f, 0.45f),
+        TileType.Tree1    => new Color(0.2f, 0.5f, 0.15f),
+        TileType.Tree2    => new Color(0.2f, 0.5f, 0.15f),
+        TileType.Tree10   => new Color(0.2f, 0.5f, 0.15f),
         _                 => new Color(0.4f, 0.7f, 0.3f),
     };
 
@@ -616,6 +645,9 @@ public class GridMapBuilder : MonoBehaviour
         TileType.Rock     => rockPrefab,
         TileType.Wood     => woodPrefab,
         TileType.Water    => waterPrefab,
+        TileType.Tree1    => null,
+        TileType.Tree2    => null,
+        TileType.Tree10   => null,
         _                 => grassPrefab,
     };
 
