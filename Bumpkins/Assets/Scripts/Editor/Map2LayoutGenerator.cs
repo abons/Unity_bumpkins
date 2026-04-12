@@ -228,6 +228,66 @@ public class DayNightDebugWindow : EditorWindow
                 foreach (var a in Object.FindObjectsByType<ToolshedAnimator>(FindObjectsSortMode.None)) a.CloseDoor();
             }
         }
+
+        EditorGUILayout.Space(8);
+
+        // ── Fall Grass Color ───────────────────────────────────────────
+        GUILayout.Label("Fall Grass Tint  (blends toward target colour)", EditorStyles.boldLabel);
+
+        // Presets
+        GUILayout.Label("Presets:", EditorStyles.miniLabel);
+        EditorGUILayout.BeginHorizontal();
+        if (GUILayout.Button("Jouw kleur\n#384100", GUILayout.Height(36))) SetFall(0.22f, 0.25f, 0.00f, 0.65f);
+        if (GUILayout.Button("Olijf\n#4A5500",      GUILayout.Height(36))) SetFall(0.29f, 0.33f, 0.00f, 0.60f);
+        if (GUILayout.Button("Droog geel\n#6B6200",  GUILayout.Height(36))) SetFall(0.42f, 0.38f, 0.00f, 0.55f);
+        if (GUILayout.Button("Laat zomer\n#2D4200",  GUILayout.Height(36))) SetFall(0.18f, 0.26f, 0.00f, 0.40f);
+        if (GUILayout.Button("Geen tint",            GUILayout.Height(36))) SetFall(0f, 0f, 0f, 0f);
+        EditorGUILayout.EndHorizontal();
+
+        EditorGUILayout.Space(4);
+        EditorGUILayout.HelpBox("RGB = doelkleur. Alpha = blendsterkte (0 = origineel gras, 1 = puur doelkleur).", MessageType.None);
+        EditorGUI.BeginChangeCheck();
+        _fallR = EditorGUILayout.Slider("R",              _fallR, 0f, 1f);
+        _fallG = EditorGUILayout.Slider("G",              _fallG, 0f, 1f);
+        _fallB = EditorGUILayout.Slider("B",              _fallB, 0f, 1f);
+        _fallA = EditorGUILayout.Slider("Blend sterkte",  _fallA, 0f, 1f);
+
+        // Preview swatch: lerp from grass green toward target
+        var swatchRect = GUILayoutUtility.GetRect(0, 28, GUILayout.ExpandWidth(true));
+        var grassGreen = new Color(0.1f, 0.47f, 0.08f);
+        var target     = new Color(_fallR, _fallG, _fallB);
+        var previewCol = Color.Lerp(grassGreen, target, _fallA);
+        EditorGUI.DrawRect(swatchRect, previewCol);
+        var labelStyle = new GUIStyle(EditorStyles.label) { normal = { textColor = Color.white } };
+        GUI.Label(new Rect(swatchRect.x + 4, swatchRect.y + 4, swatchRect.width, 20), "preview op gras", labelStyle);
+
+        if (EditorGUI.EndChangeCheck() || GUILayout.Button("Toepassen op scene tiles", GUILayout.Height(28)))
+            ApplyFallColor(new Color(_fallR, _fallG, _fallB, _fallA));
+
+        if (GUILayout.Button("Log waarden voor GridMapBuilder", GUILayout.Height(24)))
+        {
+            string line = string.Format(System.Globalization.CultureInfo.InvariantCulture,
+                "seasonal.FallAddColor = new Color({0:F2}f, {1:F2}f, {2:F2}f, {3:F2}f);",
+                _fallR, _fallG, _fallB, _fallA);
+            Debug.Log(line);
+        }
+    }
+
+    void SetFall(float r, float g, float b, float a)
+    {
+        _fallR = r; _fallG = g; _fallB = b; _fallA = a;
+        ApplyFallColor(new Color(r, g, b, a));
+    }
+
+    float _fallR = 0.22f;
+    float _fallG = 0.25f;
+    float _fallB = 0.00f;
+    float _fallA = 0.65f;
+
+    static void ApplyFallColor(Color c)
+    {
+        foreach (var t in Object.FindObjectsByType<SeasonalTreeTile>(FindObjectsSortMode.None))
+            t.PreviewFallColor(c);
     }
 }
 #endif

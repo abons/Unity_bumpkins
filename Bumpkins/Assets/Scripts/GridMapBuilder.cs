@@ -159,6 +159,14 @@ public class GridMapBuilder : MonoBehaviour
             var grassGo = MakeSpriteFill("Terrain/Grass", center, tileVec, parent, sOrder)
                        ?? MakePlaceholder(TileColor(TileType.Grass), center, tileVec, parent, sOrder);
             grassGo.name = $"Grass_{col}_{row}";
+            {
+                var seasonal = grassGo.AddComponent<SeasonalTreeTile>();
+                seasonal.SummerResourcePath = "Terrain/Grass";
+                seasonal.WinterResourcePath = "Terrain/GrassWinter";
+                seasonal.FillMode           = true;
+                seasonal.TileSize           = tileVec;
+                seasonal.FallAddColor       = new Color(0.22f, 0.25f, 0.00f, 0.65f);
+            }
 
             // Road: road sprite boven het gras, met juiste rotatie/flip
             if (tile == TileType.Road)
@@ -251,6 +259,7 @@ public class GridMapBuilder : MonoBehaviour
                             var seasonal = go.AddComponent<SeasonalTreeTile>();
                             seasonal.SummerResourcePath = summerPath;
                             seasonal.WinterResourcePath = winterPath;
+                            seasonal.TileSize           = tileVec;
                         }
                     }
                     go.name = $"Tile_{col}_{row}_{tile}";
